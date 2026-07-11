@@ -1,0 +1,42 @@
+[
+  {
+    "name": "NIA",
+    "kind": "Neurotech · SaaS",
+    "description": "The neurotech industry's competitive intelligence layer — tracking the companies, filings, and signals shaping the field.",
+    "status": "profitable",
+    "stat": "Read by Elon Musk · 20k views",
+    "tags": [],
+    "url": "https://www.neurotechintelligenceagency.com/",
+    "featured": true
+  },
+  {
+    "name": "Hemi",
+    "kind": "Neuro-acoustic · Web App",
+    "description": "A precision neuro-acoustic web app using auditory entrainment to help people drop into focus on demand.",
+    "status": "profitable",
+    "stat": "80% retention · 85% trial → paid",
+    "tags": [],
+    "url": "https://www.hemifocus.com/",
+    "featured": true
+  },
+  {
+    "name": "Promptgen",
+    "kind": "Tool · Weekend build",
+    "description": "A realistic UX and product prompt generator for portfolio ideas — spin up a brief and start designing in seconds.",
+    "status": "live",
+    "stat": "Built in a weekend · 30+ prompts generated",
+    "tags": [],
+    "url": "https://uxpromptgenerator.netlify.app/",
+    "featured": false
+  },
+  {
+    "name": "Neuraldrift",
+    "kind": "Audio · Weekend build",
+    "description": "A binaural soundwave generator and session timer — the weekend experiment that eventually led to Hemi.",
+    "status": "live",
+    "stat": "Built in a weekend · led to Hemi",
+    "tags": [],
+    "url": "https://neuraldrift.danielzkim.com/",
+    "featured": false
+  }
+]

@@ -1,0 +1,79 @@
+[
+  {
+    "company": "Nightfall",
+    "period": "MAY 2026 — PRESENT",
+    "role": "Founding Product Manager",
+    "desc": "First hire at a Khosla-backed sleep company led by Dr. Matthew Walker.",
+    "type": "Employment",
+    "badgeType": "dark",
+    "showBadge": false,
+    "caseStudy": false,
+    "href": ""
+  },
+  {
+    "company": "Somnee",
+    "period": "JAN 2025 — MAY 2026",
+    "role": "1st Product Hire",
+    "desc": "Sleep-focused BCI product — partnerships with the NFL, NBA, and a 6-figure MRR.",
+    "type": "Employment",
+    "badgeType": "dark",
+    "showBadge": false,
+    "caseStudy": true,
+    "href": "/work/somnee"
+  },
+  {
+    "company": "Salesforce",
+    "period": "JAN 2025 — APR 2025",
+    "role": "Product / UX Contractor",
+    "desc": "",
+    "type": "Contract",
+    "badgeType": "light",
+    "showBadge": true,
+    "caseStudy": false,
+    "href": ""
+  },
+  {
+    "company": "Matey AI",
+    "period": "AUG 2024 — JAN 2025",
+    "role": "Product / UX Contractor",
+    "desc": "",
+    "type": "Contract",
+    "badgeType": "light",
+    "showBadge": true,
+    "caseStudy": false,
+    "href": ""
+  },
+  {
+    "company": "Promaxo",
+    "period": "MAY 2024 — AUG 2024",
+    "role": "Product & UX",
+    "desc": "Reworked the workflow around an in-office MRI system for clinicians.",
+    "type": "Employment",
+    "badgeType": "dark",
+    "showBadge": false,
+    "caseStudy": true,
+    "href": "/work/promaxo"
+  },
+  {
+    "company": "Apple",
+    "period": "JAN 2024 — MAY 2024",
+    "role": "Product / UX Contractor",
+    "desc": "",
+    "type": "Contract",
+    "badgeType": "light",
+    "showBadge": true,
+    "caseStudy": false,
+    "href": ""
+  },
+  {
+    "company": "Lekko",
+    "period": "MAY 2023 — AUG 2023",
+    "role": "1st Product Hire",
+    "desc": "Shaped the product end-to-end at a dev-tools startup, up to its acquisition by Rippling.",
+    "type": "Employment",
+    "badgeType": "dark",
+    "showBadge": false,
+    "caseStudy": true,
+    "href": "/work/lekko"
+  }
+]
