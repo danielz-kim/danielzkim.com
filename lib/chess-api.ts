@@ -57,6 +57,64 @@ export async function fetchPlayerStats(
   }
 }
 
+export type TimeClass = "bullet" | "blitz" | "rapid";
+
+export interface GameRatingPoint {
+  ts: number; // ms
+  timeClass: TimeClass;
+  rating: number;
+}
+
+const RATED_TIME_CLASSES: TimeClass[] = ["bullet", "blitz", "rapid"];
+
+/**
+ * Chess.com's monthly archives include the player's rating after every
+ * game, so we can reconstruct real rating history without waiting for
+ * scheduled snapshots to accumulate.
+ */
+export async function fetchGameHistory(months = 12): Promise<GameRatingPoint[]> {
+  const now = new Date();
+  const points: GameRatingPoint[] = [];
+
+  for (let i = 0; i < months; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+
+    try {
+      const res = await fetch(`${BASE}/${USERNAME}/games/${year}/${month}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const games: unknown[] = Array.isArray(data.games) ? data.games : [];
+
+      for (const g of games as Record<string, any>[]) {
+        if (g.rules !== "chess") continue;
+        if (!RATED_TIME_CLASSES.includes(g.time_class)) continue;
+
+        const mine =
+          g.white?.username?.toLowerCase() === USERNAME.toLowerCase()
+            ? g.white
+            : g.black?.username?.toLowerCase() === USERNAME.toLowerCase()
+              ? g.black
+              : null;
+        if (!mine || typeof mine.rating !== "number") continue;
+
+        points.push({
+          ts: g.end_time * 1000,
+          timeClass: g.time_class,
+          rating: mine.rating,
+        });
+      }
+    } catch {
+      // Skip months that fail
+    }
+  }
+
+  return points.sort((a, b) => a.ts - b.ts);
+}
+
 export function getPlayerRating(stats: ChessStats): number {
   return (
     stats.chess_rapid?.last.rating ??

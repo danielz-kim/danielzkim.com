@@ -1,22 +1,22 @@
 import Sparkline from "./charts/Sparkline";
 import { fetchPlayerStats } from "@/lib/chess-api";
-import { getHistory, computeEloSparkline } from "@/lib/chess-history";
+import { getSeries, computeEloSparkline } from "@/lib/chess-history";
 
 function fmt(n?: number) {
   return n != null ? n.toLocaleString("en-US") : "—";
 }
 
 export default async function ChessEloCard() {
-  const [stats, history] = await Promise.all([
+  const [stats, series] = await Promise.all([
     fetchPlayerStats({ revalidate: 3600 }),
-    getHistory(60),
+    getSeries(),
   ]);
 
   const rapid = stats.chess_rapid?.last.rating;
   const blitz = stats.chess_blitz?.last.rating;
   const bullet = stats.chess_bullet?.last.rating;
 
-  const chart = computeEloSparkline(history);
+  const chart = computeEloSparkline(series);
 
   return (
     <div className="p-7 py-[28px] px-[30px] flex flex-col h-full">
