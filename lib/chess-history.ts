@@ -34,25 +34,57 @@ const X_MIN = 8;
 const X_MAX = 552;
 const Y_MIN = 10;
 const Y_MAX = 192;
+const MAX_DISPLAY_POINTS = 60;
 
 interface SeriesConfig {
   key: TimeClass;
   color: string;
   width: number;
-  dashed?: boolean;
+  dash?: string;
   pulse?: boolean;
 }
 
-// Ordered faintest → most prominent, matching the legend dots in ChessEloCard.
+// Each series gets a distinct color AND dash texture (dotted/dashed/solid)
+// so they stay legible even where two trends overlap — two shades of the
+// same accent green are too close to tell apart on their own.
 const SERIES_CONFIG: SeriesConfig[] = [
-  { key: "bullet", color: "#b7b7b5", width: 1.4, dashed: true },
+  { key: "bullet", color: "#a3a3a1", width: 1.3, dash: "1.5 3" },
   {
     key: "rapid",
-    color: "color-mix(in srgb, var(--accent) 48%, #9a9a9a 52%)",
+    color: "color-mix(in srgb, var(--accent) 68%, #9a9a9a 32%)",
     width: 1.6,
+    dash: "6 3",
   },
-  { key: "blitz", color: "var(--accent)", width: 1.8, pulse: true },
+  { key: "blitz", color: "var(--accent)", width: 1.9, pulse: true },
 ];
+
+function movingAverage(points: RatingPoint[], window: number): RatingPoint[] {
+  if (window <= 1) return points;
+  return points.map((p, i) => {
+    const start = Math.max(0, i - window + 1);
+    const slice = points.slice(start, i + 1);
+    const avg = slice.reduce((sum, s) => sum + s.rating, 0) / slice.length;
+    return { ts: p.ts, rating: avg };
+  });
+}
+
+function downsample(points: RatingPoint[], maxPoints: number): RatingPoint[] {
+  if (points.length <= maxPoints) return points;
+  const step = (points.length - 1) / (maxPoints - 1);
+  return Array.from({ length: maxPoints }, (_, i) => points[Math.round(i * step)]);
+}
+
+/** Smooths per-game noise into a clean trend line, but keeps the final
+ * plotted value exactly equal to the true latest rating so the endpoint
+ * matches the numeric badge shown above the chart. */
+function prepareSeries(points: RatingPoint[]): RatingPoint[] {
+  if (points.length === 0) return [];
+  const sorted = [...points].sort((a, b) => a.ts - b.ts);
+  const window = Math.min(15, Math.max(1, Math.round(sorted.length / 40)));
+  const displayed = downsample(movingAverage(sorted, window), MAX_DISPLAY_POINTS);
+  displayed[displayed.length - 1] = sorted[sorted.length - 1];
+  return displayed;
+}
 
 export interface ChessSparklineData {
   series: SparklineSeries[];
@@ -63,47 +95,56 @@ export interface ChessSparklineData {
 export function computeEloSparkline(
   data: Record<TimeClass, RatingPoint[]>
 ): ChessSparklineData | null {
-  const allPoints = TIME_CLASSES.flatMap((tc) => data[tc]);
+  const prepared: Record<TimeClass, RatingPoint[]> = {
+    bullet: prepareSeries(data.bullet),
+    blitz: prepareSeries(data.blitz),
+    rapid: prepareSeries(data.rapid),
+  };
+
+  const allPoints = TIME_CLASSES.flatMap((tc) => prepared[tc]);
   if (allPoints.length === 0) return null;
 
   const tsMin = Math.min(...allPoints.map((p) => p.ts));
   const tsMax = Math.max(...allPoints.map((p) => p.ts));
   const tsRange = tsMax - tsMin || 1;
-
-  const ratings = allPoints.map((p) => p.rating);
-  const rawMin = Math.min(...ratings);
-  const rawMax = Math.max(...ratings);
-  const pad = Math.max((rawMax - rawMin) * 0.12, 25);
-  const min = rawMin - pad;
-  const max = rawMax + pad;
-  const range = max - min || 1;
-
   const xFor = (ts: number) => X_MIN + ((ts - tsMin) / tsRange) * (X_MAX - X_MIN);
-  const yFor = (rating: number) => Y_MAX - ((rating - min) / range) * (Y_MAX - Y_MIN);
 
   const series: SparklineSeries[] = [];
   let areaPath = "";
 
   for (const cfg of SERIES_CONFIG) {
-    const points = data[cfg.key];
+    const points = prepared[cfg.key];
     if (points.length === 0) continue;
+
+    // Each series is normalized to its own range rather than a shared one,
+    // so metrics with very different absolute ratings (e.g. Rapid sitting
+    // 300+ points above Bullet) don't squash each other's trend flat.
+    const ratings = points.map((p) => p.rating);
+    const rawMin = Math.min(...ratings);
+    const rawMax = Math.max(...ratings);
+    const pad = Math.max((rawMax - rawMin) * 0.18, 12);
+    const min = rawMin - pad;
+    const max = rawMax + pad;
+    const range = max - min || 1;
+    const yFor = (rating: number) => Y_MAX - ((rating - min) / range) * (Y_MAX - Y_MIN);
 
     const coords = points.map((p) => ({ x: xFor(p.ts), y: yFor(p.rating) }));
     const d = coords
       .map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)},${c.y.toFixed(1)}`)
       .join(" ");
+    const first = coords[0];
     const last = coords[coords.length - 1];
 
     series.push({
       d,
       color: cfg.color,
       width: cfg.width,
-      dashed: cfg.dashed,
+      dash: cfg.dash,
       endpoint: { cx: last.x, cy: last.y, pulse: cfg.pulse, color: cfg.color },
     });
 
     if (cfg.key === "blitz") {
-      areaPath = `${d} L${last.x.toFixed(1)},${Y_MAX} L${X_MIN},${Y_MAX} Z`;
+      areaPath = `${d} L${last.x.toFixed(1)},${Y_MAX} L${first.x.toFixed(1)},${Y_MAX} Z`;
     }
   }
 

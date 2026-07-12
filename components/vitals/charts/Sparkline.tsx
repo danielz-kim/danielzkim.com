@@ -6,7 +6,7 @@ export interface SparklineSeries {
   d: string;
   color: string;
   width?: number;
-  dashed?: boolean;
+  dash?: string;
   endpoint?: { cx: number; cy: number; pulse?: boolean; color?: string };
 }
 
@@ -75,12 +75,12 @@ export default function Sparkline({
           fill="none"
           stroke={s.color}
           strokeWidth={s.width ?? 1.6}
-          strokeDasharray={s.dashed ? "3 4" : undefined}
+          strokeDasharray={s.dash}
           vectorEffect="non-scaling-stroke"
-          initial={{ pathLength: 0 }}
-          whileInView={{ pathLength: 1 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: "-30px" }}
-          transition={{ duration: 1.8, ease: [0.33, 0, 0.18, 1] }}
+          transition={{ duration: 1, ease: "easeOut", delay: i * 0.12 }}
         />
       ))}
 
