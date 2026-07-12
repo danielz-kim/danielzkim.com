@@ -81,9 +81,13 @@ export async function fetchGameHistory(months = 12): Promise<GameRatingPoint[]> 
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
 
+    // Past months are immutable once they're over; only the current month
+    // still gains games, so cache it far more briefly.
+    const isCurrentMonth = i === 0;
+
     try {
       const res = await fetch(`${BASE}/${USERNAME}/games/${year}/${month}`, {
-        cache: "no-store",
+        next: { revalidate: isCurrentMonth ? 3600 : 604800 },
       });
       if (!res.ok) continue;
       const data = await res.json();

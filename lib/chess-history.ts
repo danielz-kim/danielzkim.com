@@ -1,69 +1,23 @@
-import { getRedis } from "./redis";
-import {
-  fetchPlayerStats,
-  fetchGameHistory,
-  type TimeClass,
-} from "./chess-api";
+import { fetchGameHistory, type TimeClass } from "./chess-api";
 import type { SparklineSeries } from "@/components/vitals/charts/Sparkline";
 
 const TIME_CLASSES: TimeClass[] = ["bullet", "blitz", "rapid"];
-const MAX_POINTS_PER_CLASS = 1000; // bound each sorted set's long-term growth
-const DISPLAY_POINTS_PER_CLASS = 200;
-
-function keyFor(tc: TimeClass) {
-  return `chess:elo:${tc}`;
-}
 
 export interface RatingPoint {
   ts: number;
   rating: number;
 }
 
-async function addPoints(tc: TimeClass, points: RatingPoint[]) {
-  const redis = getRedis();
-  if (!redis || points.length === 0) return;
-
-  const [first, ...rest] = points.map((p) => ({
-    score: p.ts,
-    member: `${p.ts}:${p.rating}`,
-  }));
-  await redis.zadd(keyFor(tc), first, ...rest);
-  await redis.zremrangebyrank(keyFor(tc), 0, -MAX_POINTS_PER_CLASS - 1);
-}
-
-/** Called by the twice-daily cron to append the current live rating. */
-export async function recordSnapshot(): Promise<boolean> {
-  const redis = getRedis();
-  if (!redis) return false;
-
-  const stats = await fetchPlayerStats({ fresh: true });
-  const now = Date.now();
-  const ratings: Record<TimeClass, number | undefined> = {
-    bullet: stats.chess_bullet?.last.rating,
-    blitz: stats.chess_blitz?.last.rating,
-    rapid: stats.chess_rapid?.last.rating,
-  };
-
-  for (const tc of TIME_CLASSES) {
-    const rating = ratings[tc];
-    if (rating != null) await addPoints(tc, [{ ts: now, rating }]);
-  }
-
-  return true;
-}
-
 /**
- * One-time (safe to re-run) backfill that reconstructs history from past
- * games, so the graph has real data immediately instead of waiting weeks
- * for cron snapshots to accumulate.
+ * Chess.com's monthly game archives are themselves the historical record —
+ * no need to snapshot/store anything ourselves. Pulls games, groups by
+ * time class, and returns rating-over-time points ready for the sparkline.
  */
-export async function backfillFromGames(
-  months = 12
-): Promise<Record<TimeClass, number> | null> {
-  const redis = getRedis();
-  if (!redis) return null;
-
+export async function fetchEloSeries(
+  months = 6
+): Promise<Record<TimeClass, RatingPoint[]>> {
   const games = await fetchGameHistory(months);
+
   const byClass: Record<TimeClass, RatingPoint[]> = {
     bullet: [],
     blitz: [],
@@ -73,35 +27,7 @@ export async function backfillFromGames(
     byClass[g.timeClass].push({ ts: g.ts, rating: g.rating });
   }
 
-  const counts: Record<TimeClass, number> = { bullet: 0, blitz: 0, rapid: 0 };
-  for (const tc of TIME_CLASSES) {
-    await addPoints(tc, byClass[tc]);
-    counts[tc] = byClass[tc].length;
-  }
-
-  return counts;
-}
-
-export async function getSeries(
-  limit = DISPLAY_POINTS_PER_CLASS
-): Promise<Record<TimeClass, RatingPoint[]>> {
-  const empty: Record<TimeClass, RatingPoint[]> = {
-    bullet: [],
-    blitz: [],
-    rapid: [],
-  };
-  const redis = getRedis();
-  if (!redis) return empty;
-
-  const result = { ...empty };
-  for (const tc of TIME_CLASSES) {
-    const raw = await redis.zrange<string[]>(keyFor(tc), -limit, -1);
-    result[tc] = raw.map((member) => {
-      const [ts, rating] = member.split(":");
-      return { ts: Number(ts), rating: Number(rating) };
-    });
-  }
-  return result;
+  return byClass;
 }
 
 const X_MIN = 8;

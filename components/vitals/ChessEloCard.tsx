@@ -1,6 +1,6 @@
 import Sparkline from "./charts/Sparkline";
 import { fetchPlayerStats } from "@/lib/chess-api";
-import { getSeries, computeEloSparkline } from "@/lib/chess-history";
+import { fetchEloSeries, computeEloSparkline } from "@/lib/chess-history";
 
 function fmt(n?: number) {
   return n != null ? n.toLocaleString("en-US") : "—";
@@ -9,7 +9,7 @@ function fmt(n?: number) {
 export default async function ChessEloCard() {
   const [stats, series] = await Promise.all([
     fetchPlayerStats({ revalidate: 3600 }),
-    getSeries(),
+    fetchEloSeries(6),
   ]);
 
   const rapid = stats.chess_rapid?.last.rating;
@@ -68,7 +68,7 @@ export default async function ChessEloCard() {
           />
         ) : (
           <div className="h-full flex items-center justify-center font-mono text-[9.5px] text-faint">
-            Collecting rating history…
+            No rated games in the last 6 months
           </div>
         )}
       </div>
@@ -87,7 +87,7 @@ export default async function ChessEloCard() {
       )}
 
       <div className="font-mono text-[9.5px] text-ghost mt-3 border-t border-border-faint pt-3">
-        Synced from chess.com · updates 12am &amp; 12pm daily
+        Live from chess.com · last 6 months of rated games
       </div>
     </div>
   );
