@@ -15,12 +15,18 @@ function fmt(n?: number) {
   return n != null ? n.toLocaleString("en-US") : "—";
 }
 
+function isToday(day?: string) {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+  return day === today;
+}
+
 export default async function Hero() {
   const activity = await fetchTodayActivity();
+  const stepsLabel = isToday(activity?.day) ? "Steps Today" : "Steps (last synced)";
 
   const postRows = [
     ...staticPostRows,
-    { label: "Steps Today", value: fmt(activity?.steps), mono: true },
+    { label: stepsLabel, value: fmt(activity?.steps), mono: true },
     {
       label: "Calories Burned",
       value: activity ? `${fmt(activity.activeCalories)} kcal` : "—",
