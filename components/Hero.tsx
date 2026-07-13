@@ -1,7 +1,7 @@
 import Image from "next/image";
 import FadeIn from "@/components/FadeIn";
 import LiveClock from "@/components/LiveClock";
-import { fetchLatestActivity } from "@/lib/oura-api";
+import { fetchYesterdayActivity } from "@/lib/oura-api";
 
 const tags = ["HCI", "biotech/neurotech", "product", "0→1", "UC Berkeley", "Georgia Tech"];
 
@@ -17,7 +17,7 @@ function fmt(n?: number) {
 }
 
 export default async function Hero() {
-  const activity = await fetchLatestActivity();
+  const activity = await fetchYesterdayActivity();
 
   const postRows = [
     ...staticPostRows,
@@ -39,9 +39,9 @@ export default async function Hero() {
           <Image
             src="/images/profile.jpg"
             alt="Daniel Kim"
-            width={64}
-            height={64}
-            className="w-16 h-16 rounded-full object-cover mb-4"
+            width={96}
+            height={96}
+            className="w-24 h-24 rounded-full object-cover mb-4"
             priority
           />
         </FadeIn>

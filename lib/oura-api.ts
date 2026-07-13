@@ -13,15 +13,17 @@ function dateISO(daysAgo: number) {
 }
 
 // Oura only publishes a day's summary once enough activity has synced from
-// the ring, so it typically lags a full day behind — pull a short window
-// and use whatever the most recent available day is (usually yesterday).
-export async function fetchLatestActivity(
+// the ring, so "today" is essentially never ready — we deliberately ask for
+// yesterday, which is reliably finalized by the time this is read. Oura's
+// end_date is exclusive, so we have to ask through "today" to get yesterday
+// back at all.
+export async function fetchYesterdayActivity(
   opts: { revalidate?: number } = {}
 ): Promise<DailyActivity | null> {
   const token = process.env.OURA_ACCESS_TOKEN;
   if (!token) return null;
 
-  const start = dateISO(2);
+  const start = dateISO(1);
   const end = dateISO(0);
 
   try {
@@ -32,13 +34,13 @@ export async function fetchLatestActivity(
     if (!res.ok) return null;
 
     const data = await res.json();
-    const latest = data.data?.[data.data.length - 1];
-    if (!latest) return null;
+    const activity = data.data?.[0];
+    if (!activity) return null;
 
     return {
-      steps: latest.steps,
-      activeCalories: latest.active_calories,
-      totalCalories: latest.total_calories,
+      steps: activity.steps,
+      activeCalories: activity.active_calories,
+      totalCalories: activity.total_calories,
     };
   } catch {
     return null;
