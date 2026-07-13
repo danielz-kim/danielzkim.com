@@ -1,5 +1,3 @@
-import { fetchRecentGamePgns, fetchPlayerStats, getPlayerRating } from "@/lib/chess-api";
-import { buildOpeningBook } from "@/lib/opening-book";
 import ChessBotWrapper from "./ChessBotWrapper";
 import FadeIn from "@/components/FadeIn";
 
@@ -8,17 +6,7 @@ export const metadata = {
   description: "Play chess against a bot trained on my game history.",
 };
 
-export const revalidate = 86400;
-
-export default async function PlayPage() {
-  const [pgns, stats] = await Promise.all([
-    fetchRecentGamePgns(12),
-    fetchPlayerStats(),
-  ]);
-
-  const openingBook = buildOpeningBook(pgns, 6);
-  const playerRating = getPlayerRating(stats);
-
+export default function PlayPage() {
   return (
     <div className="pt-28 pb-24">
       <div className="max-w-grid mx-auto px-6">
@@ -44,18 +32,10 @@ export default async function PlayPage() {
                 me — aggressive openings, positional middlegame, occasional
                 blunder. Don't read too much into the losses.
               </p>
-              {playerRating && (
-                <p className="font-mono text-sm text-tertiary mt-2">
-                  current rating — {playerRating}
-                </p>
-              )}
             </div>
           </FadeIn>
 
-          <ChessBotWrapper
-            openingBook={openingBook}
-            playerRating={playerRating}
-          />
+          <ChessBotWrapper />
         </section>
       </div>
     </div>
