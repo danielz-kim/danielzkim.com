@@ -1,18 +1,33 @@
 import FadeIn from "@/components/FadeIn";
 import LiveClock from "@/components/LiveClock";
+import { fetchTodayActivity } from "@/lib/oura-api";
 
 const tags = ["HCI", "biotech/neurotech", "product", "0→1", "UC Berkeley", "Georgia Tech"];
 
 const preRows = [{ label: "Location", value: "San Francisco, CA" }];
 
-const postRows = [
-  { label: "Focus", value: "Sleep Tech · Nightfall" },
-  { label: "Studying", value: "M.S. CS, HCI · Georgia Tech" },
-  { label: "Steps Today", value: "8,412", mono: true },
-  { label: "Calories Burned", value: "2,180 kcal", mono: true },
+const staticPostRows = [
+  { label: "Focus", value: "Sleep Tech · Nightfall", mono: false },
+  { label: "Studying", value: "M.S. CS, HCI · Georgia Tech", mono: false },
 ];
 
-export default function Hero() {
+function fmt(n?: number) {
+  return n != null ? n.toLocaleString("en-US") : "—";
+}
+
+export default async function Hero() {
+  const activity = await fetchTodayActivity();
+
+  const postRows = [
+    ...staticPostRows,
+    { label: "Steps Today", value: fmt(activity?.steps), mono: true },
+    {
+      label: "Calories Burned",
+      value: activity ? `${fmt(activity.activeCalories)} kcal` : "—",
+      mono: true,
+    },
+  ];
+
   return (
     <section
       id="top"
@@ -102,7 +117,9 @@ export default function Hero() {
               </div>
             ))}
             <div className="font-mono text-[9.5px] text-ghost pt-1.5">
-              Mock data — Whoop &amp; Oura sync coming soon
+              {activity
+                ? "Live from Oura · steps & active calories"
+                : "Oura sync unavailable"}
             </div>
           </div>
         </div>
