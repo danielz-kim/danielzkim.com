@@ -1,22 +1,30 @@
-import Sparkline from "./charts/Sparkline";
+import ProgressRing from "./charts/ProgressRing";
 import { fetchPlayerStats } from "@/lib/chess-api";
-import { fetchEloSeries, computeEloSparkline } from "@/lib/chess-history";
+
+const GOAL = 2000;
+
+const RINGS = [
+  { key: "blitz", label: "Blitz", color: "var(--accent)" },
+  {
+    key: "rapid",
+    label: "Rapid",
+    color: "color-mix(in srgb, var(--accent) 68%, #9a9a9a 32%)",
+  },
+  { key: "bullet", label: "Bullet", color: "#a3a3a1" },
+] as const;
 
 function fmt(n?: number) {
   return n != null ? n.toLocaleString("en-US") : "—";
 }
 
 export default async function ChessEloCard() {
-  const [stats, series] = await Promise.all([
-    fetchPlayerStats({ revalidate: 3600 }),
-    fetchEloSeries(6),
-  ]);
+  const stats = await fetchPlayerStats({ revalidate: 3600 });
 
-  const rapid = stats.chess_rapid?.last.rating;
-  const blitz = stats.chess_blitz?.last.rating;
-  const bullet = stats.chess_bullet?.last.rating;
-
-  const chart = computeEloSparkline(series);
+  const ratings: Record<(typeof RINGS)[number]["key"], number | undefined> = {
+    blitz: stats.chess_blitz?.last.rating,
+    rapid: stats.chess_rapid?.last.rating,
+    bullet: stats.chess_bullet?.last.rating,
+  };
 
   return (
     <div className="p-7 py-[28px] px-[30px] flex flex-col h-full">
@@ -30,64 +38,31 @@ export default async function ChessEloCard() {
         </span>
       </div>
 
-      <div className="flex items-center gap-[18px] mt-4 flex-wrap">
-        <div className="flex items-center gap-[7px]">
-          <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
-          <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-tertiary">
-            Blitz
-          </span>
-          <span className="font-mono text-[15px] text-primary">{fmt(blitz)}</span>
-        </div>
-        <div className="flex items-center gap-[7px]">
-          <span
-            className="w-2 h-2 rounded-full shrink-0"
-            style={{
-              background: "color-mix(in srgb, var(--accent) 48%, #9a9a9a 52%)",
-            }}
-          />
-          <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-tertiary">
-            Rapid
-          </span>
-          <span className="font-mono text-[15px] text-primary">{fmt(rapid)}</span>
-        </div>
-        <div className="flex items-center gap-[7px]">
-          <span className="w-2 h-2 rounded-full bg-faint shrink-0" />
-          <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-tertiary">
-            Bullet
-          </span>
-          <span className="font-mono text-[15px] text-primary">{fmt(bullet)}</span>
-        </div>
-      </div>
+      <div className="flex-1 flex items-center justify-around flex-wrap gap-6 mt-2">
+        {RINGS.map((ring) => {
+          const rating = ratings[ring.key];
+          const percent = rating != null ? (rating / GOAL) * 100 : 0;
 
-      <div className="flex-1 mt-3.5 min-h-[100px] relative">
-        {chart ? (
-          <Sparkline
-            viewBox="0 0 560 200"
-            areaPath={chart.areaPath}
-            series={chart.series}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center font-mono text-[9.5px] text-faint">
-            No rated games in the last 6 months
-          </div>
-        )}
+          return (
+            <div key={ring.key} className="flex flex-col items-center gap-2.5">
+              <div className="relative w-[84px] h-[84px]">
+                <ProgressRing percent={percent} color={ring.color} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-mono text-[14px] text-primary">
+                    {fmt(rating)}
+                  </span>
+                </div>
+              </div>
+              <span className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-tertiary">
+                {ring.label}
+              </span>
+            </div>
+          );
+        })}
       </div>
-
-      {chart && (
-        <div className="flex justify-between">
-          {chart.labels.map((label, i) => (
-            <span
-              key={`${label}-${i}`}
-              className="font-mono text-[9.5px] tracking-[0.1em] text-faint"
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-      )}
 
       <div className="font-mono text-[9.5px] text-ghost mt-3 border-t border-border-faint pt-3">
-        Live from chess.com · last 6 months of rated games
+        Live from chess.com · goal 2000 in every format
       </div>
     </div>
   );
