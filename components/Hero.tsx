@@ -1,7 +1,7 @@
 import Image from "next/image";
 import FadeIn from "@/components/FadeIn";
 import LiveClock from "@/components/LiveClock";
-import { fetchYesterdayActivity } from "@/lib/oura-api";
+import { fetchLatestActivity } from "@/lib/oura-api";
 
 const tags = ["HCI", "biotech/neurotech", "product", "0→1", "UC Berkeley", "Georgia Tech"];
 
@@ -17,13 +17,13 @@ function fmt(n?: number) {
 }
 
 export default async function Hero() {
-  const activity = await fetchYesterdayActivity();
+  const activity = await fetchLatestActivity();
 
   const postRows = [
     ...staticPostRows,
-    { label: "Steps Yesterday", value: fmt(activity?.steps), mono: true },
+    { label: "Steps Today", value: fmt(activity?.steps), mono: true },
     {
-      label: "Calories Burned Yesterday",
+      label: "Calories Burned",
       value: activity ? `${fmt(activity.activeCalories)} kcal` : "—",
       mono: true,
     },
@@ -129,7 +129,7 @@ export default async function Hero() {
             ))}
             <div className="font-mono text-[9.5px] text-ghost pt-1.5">
               {activity
-                ? "Live from Oura · yesterday's steps & active calories"
+                ? "Live from Oura · steps & active calories"
                 : "Oura sync unavailable"}
             </div>
           </div>
