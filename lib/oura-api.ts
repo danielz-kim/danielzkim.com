@@ -1,5 +1,4 @@
 export interface DailyActivity {
-  day: string;
   steps: number;
   activeCalories: number;
   totalCalories: number;
@@ -14,9 +13,9 @@ function dateISO(daysAgo: number) {
 }
 
 // Oura only publishes a day's summary once enough activity has synced from
-// the ring, so "today" is often not ready yet — pull a short window and use
-// whatever the most recent available day is.
-export async function fetchTodayActivity(
+// the ring, so it typically lags a full day behind — pull a short window
+// and use whatever the most recent available day is (usually yesterday).
+export async function fetchLatestActivity(
   opts: { revalidate?: number } = {}
 ): Promise<DailyActivity | null> {
   const token = process.env.OURA_ACCESS_TOKEN;
@@ -37,7 +36,6 @@ export async function fetchTodayActivity(
     if (!latest) return null;
 
     return {
-      day: latest.day,
       steps: latest.steps,
       activeCalories: latest.active_calories,
       totalCalories: latest.total_calories,

@@ -1,6 +1,6 @@
 import FadeIn from "@/components/FadeIn";
 import LiveClock from "@/components/LiveClock";
-import { fetchTodayActivity } from "@/lib/oura-api";
+import { fetchLatestActivity } from "@/lib/oura-api";
 
 const tags = ["HCI", "biotech/neurotech", "product", "0→1", "UC Berkeley", "Georgia Tech"];
 
@@ -15,20 +15,14 @@ function fmt(n?: number) {
   return n != null ? n.toLocaleString("en-US") : "—";
 }
 
-function isToday(day?: string) {
-  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
-  return day === today;
-}
-
 export default async function Hero() {
-  const activity = await fetchTodayActivity();
-  const stepsLabel = isToday(activity?.day) ? "Steps Today" : "Steps (last synced)";
+  const activity = await fetchLatestActivity();
 
   const postRows = [
     ...staticPostRows,
-    { label: stepsLabel, value: fmt(activity?.steps), mono: true },
+    { label: "Steps Yesterday", value: fmt(activity?.steps), mono: true },
     {
-      label: "Calories Burned",
+      label: "Calories Burned Yesterday",
       value: activity ? `${fmt(activity.activeCalories)} kcal` : "—",
       mono: true,
     },
@@ -72,7 +66,7 @@ export default async function Hero() {
         </FadeIn>
       </div>
 
-      <FadeIn delay={0.1} className="flex-none basis-[320px] min-w-[280px]">
+      <FadeIn delay={0.1} className="flex-none basis-[380px] min-w-[320px]">
         <div className="border border-border rounded-xl bg-card px-6 py-[22px]">
           <div className="flex items-center justify-between pb-4 border-b border-border-faint">
             <span className="label-meta text-tertiary">Live Status</span>
@@ -124,7 +118,7 @@ export default async function Hero() {
             ))}
             <div className="font-mono text-[9.5px] text-ghost pt-1.5">
               {activity
-                ? "Live from Oura · steps & active calories"
+                ? "Live from Oura · yesterday's steps & active calories"
                 : "Oura sync unavailable"}
             </div>
           </div>
