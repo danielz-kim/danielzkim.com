@@ -1,3 +1,4 @@
+import Image from "next/image";
 import FadeIn from "@/components/FadeIn";
 import LiveClock from "@/components/LiveClock";
 import { fetchLatestActivity } from "@/lib/oura-api";
@@ -34,6 +35,16 @@ export default async function Hero() {
       className="px-6 md:px-10 pt-32 flex gap-14 items-start flex-wrap"
     >
       <div className="flex-1 basis-[480px] min-w-[320px]">
+        <FadeIn delay={0}>
+          <Image
+            src="/images/profile.jpg"
+            alt="Daniel Kim"
+            width={64}
+            height={64}
+            className="w-16 h-16 rounded-full object-cover mb-4"
+            priority
+          />
+        </FadeIn>
         <FadeIn delay={0}>
           <h1 className="font-medium text-[clamp(32px,4.6vw,56px)] leading-[1.05] tracking-[-0.025em] text-primary text-balance m-0">
             Hi, I am Daniel.
