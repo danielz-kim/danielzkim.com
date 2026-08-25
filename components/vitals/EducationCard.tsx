@@ -1,14 +1,14 @@
 import ProgressBar from "./charts/ProgressBar";
 
 const roadmap = [
-  { label: "B.A. Cognitive Science", meta: "Berkeley · Done", state: "done" },
-  { label: "B.A. Data Science", meta: "Berkeley · Done", state: "done" },
+  { label: "Ph.D., TBD", meta: "Someday", state: "someday" },
   {
     label: "M.S. Computer Science, HCI",
     meta: "Georgia Tech · Now",
     state: "now",
   },
-  { label: "Ph.D., TBD", meta: "Someday", state: "someday" },
+  { label: "Data Science Minor", meta: "Berkeley · Done", state: "done" },
+  { label: "B.A. Cognitive Science", meta: "Berkeley · Done", state: "done" },
 ] as const;
 
 export default function EducationCard() {

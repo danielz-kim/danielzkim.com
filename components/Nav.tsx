@@ -88,16 +88,18 @@ function NavDropdown({
       >
         {label} <span className="text-[8px]">▾</span>
       </span>
-      <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150 absolute top-[26px] left-0 min-w-[150px] bg-card border border-border rounded-[10px] p-2 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.07)] z-[60]">
-        {items.map(({ href, label: itemLabel }) => (
-          <Link
-            key={href}
-            href={href}
-            className="font-mono text-[11px] tracking-wide text-secondary hover:text-primary hover:bg-background transition-colors no-underline px-[10px] py-2 rounded-md"
-          >
-            {itemLabel}
-          </Link>
-        ))}
+      <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150 absolute top-full left-0 pt-[10px] z-[60]">
+        <div className="min-w-[150px] bg-card border border-border rounded-[10px] p-2 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.07)]">
+          {items.map(({ href, label: itemLabel }) => (
+            <Link
+              key={href}
+              href={href}
+              className="font-mono text-[11px] tracking-wide text-secondary hover:text-primary hover:bg-background transition-colors no-underline px-[10px] py-2 rounded-md"
+            >
+              {itemLabel}
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
