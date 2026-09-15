@@ -14,7 +14,6 @@ const SECTION_IDS = [
   "work",
   "about",
   "experiments",
-  "designs",
   "play",
   "signal",
   "reading",
@@ -24,7 +23,6 @@ const SECTION_IDS = [
 const portfolioLinks = [
   { href: "/#work", label: "Work" },
   { href: "/#experiments", label: "Projects" },
-  { href: "/#designs", label: "Designs" },
 ];
 
 const explorationsLinks = [
@@ -145,13 +143,13 @@ export default function Nav() {
             active === "vitals" ? "text-primary" : "text-secondary"
           )}
         >
-          Accomplishments
+          Vitals
         </Link>
 
         <NavDropdown
           label="Portfolio"
           items={portfolioLinks}
-          active={["work", "experiments", "designs"].includes(active ?? "")}
+          active={["work", "experiments"].includes(active ?? "")}
         />
 
         <Link
@@ -227,7 +225,7 @@ export default function Nav() {
       {menuOpen && (
         <div className="md:hidden fixed inset-0 top-14 bg-background z-40 flex flex-col items-center overflow-y-auto py-10 gap-6">
           <Link href="/#vitals" className="font-mono text-lg text-primary no-underline">
-            Accomplishments
+            Vitals
           </Link>
 
           <button

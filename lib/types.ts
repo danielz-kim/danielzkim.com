@@ -27,6 +27,7 @@ export interface Project {
   tags: string[];
   url?: string;
   featured: boolean;
+  previewImage?: string;
 }
 
 export interface CaseStudyMeta extends CaseStudyFrontmatter {
@@ -37,6 +38,18 @@ export interface WritingMeta extends WritingFrontmatter {
   slug: string;
 }
 
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  coverUrl?: string;
+  status: "wishlist" | "in-progress" | "finished";
+  year?: number | null;
+  rating?: number | null;
+  notes?: string;
+  addedAt: string;
+}
+
 export interface WorkHistoryEntry {
   company: string;
   period: string;
@@ -45,6 +58,6 @@ export interface WorkHistoryEntry {
   type: string;
   badgeType: "dark" | "light";
   showBadge: boolean;
-  caseStudy: boolean;
+  /** Set to a `/work/[slug]` path once a case study exists for this entry; empty otherwise. */
   href: string;
 }

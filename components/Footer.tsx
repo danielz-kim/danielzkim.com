@@ -43,9 +43,9 @@ export default function Footer() {
     >
       <div className="flex items-center gap-3.5 mb-6">
         <span className="font-mono text-[11px] font-medium tracking-[0.14em] text-accent">
-          09
+          08
         </span>
-        <span className="label-meta text-tertiary">Contact</span>
+        <span className="section-title">Contact</span>
         <span className="flex-1 h-px bg-border" />
       </div>
 

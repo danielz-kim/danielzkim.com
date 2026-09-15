@@ -41,7 +41,7 @@ export default function WorkHistoryRow({ entry }: Props) {
           </p>
         )}
       </div>
-      {entry.caseStudy && (
+      {entry.href && (
         <span className="flex items-center gap-1.5 font-mono text-[11px] tracking-[0.06em] uppercase text-primary whitespace-nowrap self-center">
           See Work <span className="text-[#c4c4c4]">→</span>
         </span>
@@ -52,7 +52,7 @@ export default function WorkHistoryRow({ entry }: Props) {
   const rowClass =
     "flex flex-col gap-3 md:grid md:grid-cols-[170px_1fr_auto] md:gap-8 items-start py-[30px] border-t border-border-light no-underline text-inherit";
 
-  if (entry.caseStudy && entry.href) {
+  if (entry.href) {
     return (
       <Link href={entry.href} className={rowClass}>
         {content}

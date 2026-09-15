@@ -1,5 +1,4 @@
-import ProjectCard from "@/components/ProjectCard";
-import FadeIn from "@/components/FadeIn";
+import ProjectsGrid from "@/components/ProjectsGrid";
 import projectsData from "@/content/projects.json";
 import type { Project } from "@/lib/types";
 
@@ -15,17 +14,11 @@ export default function ProjectsSection() {
         <span className="font-mono text-[11px] font-medium tracking-[0.14em] text-accent">
           04
         </span>
-        <span className="label-meta text-tertiary">Projects</span>
+        <span className="section-title">Projects</span>
         <span className="flex-1 h-px bg-border" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {projects.map((project, i) => (
-          <FadeIn key={project.name} delay={i * 0.08}>
-            <ProjectCard project={project} />
-          </FadeIn>
-        ))}
-      </div>
+      <ProjectsGrid projects={projects} />
     </section>
   );
 }

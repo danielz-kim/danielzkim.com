@@ -3,13 +3,13 @@ import FadeIn from "@/components/FadeIn";
 import LiveClock from "@/components/LiveClock";
 import { fetchLatestActivity } from "@/lib/oura-api";
 
-const tags = ["HCI", "biotech/neurotech", "product", "0→1", "UC Berkeley", "Georgia Tech"];
+const tags = ["biotech/neurotech", "product", "0→1", "UC Berkeley", "Georgia Tech"];
 
-const preRows = [{ label: "Location", value: "San Francisco, CA" }];
+const preRows = [{ label: "Based in", value: "San Francisco, CA" }];
 
 const staticPostRows = [
-  { label: "Focus", value: "Sleep Tech · Nightfall", mono: false },
-  { label: "Studying", value: "M.S. CS, HCI · Georgia Tech", mono: false },
+  { label: "Focus", value: "Product · Nightfall Health", mono: false },
+  { label: "Studying", value: "M.S. CS · Georgia Tech", mono: false },
 ];
 
 function fmt(n?: number) {
@@ -58,12 +58,11 @@ export default async function Hero() {
         </FadeIn>
         <FadeIn delay={0.1}>
           <p className="text-[clamp(15px,1.35vw,18px)] leading-[1.62] text-secondary max-w-[54ch] mt-4 mb-0">
-            Right now, I&apos;m the Founding Product Manager and first hire at
-            Nightfall, a Khosla-backed sleep company led by Dr. Matthew
-            Walker. Alongside that, I&apos;m pursuing an MS in Computer
-            Science with a specialization in Human-Computer Interaction at
-            Georgia Tech, building on a dual degree in Cognitive Science and
-            Data Science from UC Berkeley.
+            Currently, I&apos;m the Founding Product Manager and first hire at
+            Nightfall Health, a Khosla-backed sleep company founded by Dr.
+            Matthew Walker. Alongside that, I&apos;m pursuing my MS in
+            Computer Science from Georgia Tech, building on Cognitive Science
+            and Data Science degrees from UC Berkeley.
           </p>
         </FadeIn>
         <FadeIn delay={0.15}>

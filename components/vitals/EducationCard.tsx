@@ -3,7 +3,7 @@ import ProgressBar from "./charts/ProgressBar";
 const roadmap = [
   { label: "Ph.D., TBD", meta: "Someday", state: "someday" },
   {
-    label: "M.S. Computer Science, HCI",
+    label: "M.S. Computer Science",
     meta: "Georgia Tech · Now",
     state: "now",
   },

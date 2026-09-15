@@ -64,6 +64,14 @@ export default async function ChessEloCard() {
       <div className="font-mono text-[9.5px] text-ghost mt-3 border-t border-border-faint pt-3">
         Live from chess.com · goal 2000 in every format
       </div>
+      <a
+        href="https://www.chess.com/member/dbossehc"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.08em] uppercase text-primary no-underline mt-2.5"
+      >
+        See profile <span className="text-accent">→</span>
+      </a>
     </div>
   );
 }

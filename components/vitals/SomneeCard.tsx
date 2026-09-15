@@ -21,6 +21,14 @@ export default function SomneeCard() {
         </span>
         <span className="font-mono text-xs text-primary">6-fig MRR</span>
       </div>
+      <a
+        href="https://somneesleep.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.08em] uppercase text-primary no-underline mt-2.5"
+      >
+        See Somnee <span className="text-accent">→</span>
+      </a>
     </div>
   );
 }

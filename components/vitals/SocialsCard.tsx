@@ -1,39 +1,38 @@
-const ventures = [
-  { name: "Hemi", meta: "Revenue numbers coming soon", active: true },
-  { name: "NIA", meta: "Paused", active: false },
-  { name: "Baux", meta: "$119k ARR · Archived", active: false },
+const socials = [
+  { name: "LinkedIn", meta: "100k+ impressions", active: true },
+  { name: "TikTok", meta: "4M+ views", active: false },
 ];
 
-export default function SideVenturesCard() {
+export default function SocialsCard() {
   return (
     <div className="px-6 py-5 flex flex-col h-full">
       <span className="font-mono text-[10px] font-medium tracking-[0.14em] uppercase text-tertiary">
-        Side Ventures
+        Socials
       </span>
       <div className="mt-2 flex flex-col flex-1 justify-center">
-        {ventures.map((v) => (
+        {socials.map((s) => (
           <div
-            key={v.name}
+            key={s.name}
             className="flex items-center gap-3 py-2 border-t border-border-faint"
           >
             <span
               className={
-                v.active
+                s.active
                   ? "w-1.5 h-1.5 rounded-full bg-accent blink-dot shrink-0"
                   : "w-1.5 h-1.5 rounded-full bg-inactive shrink-0"
               }
             />
             <span
               className={
-                v.active
+                s.active
                   ? "text-[13px] text-primary flex-1"
                   : "text-[13px] text-muted flex-1"
               }
             >
-              {v.name}
+              {s.name}
             </span>
             <span className="font-mono text-[10.5px] text-label">
-              {v.meta}
+              {s.meta}
             </span>
           </div>
         ))}

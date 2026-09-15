@@ -1,0 +1,68 @@
+[
+  {
+    "id": "range-david-j-epstein",
+    "title": "Range",
+    "author": "David J. Epstein",
+    "coverUrl": "https://covers.openlibrary.org/b/id/8782615-L.jpg",
+    "status": "in-progress",
+    "year": 2026,
+    "rating": null,
+    "notes": "",
+    "addedAt": "2026-09-01T03:38:17.055Z"
+  },
+  {
+    "id": "golden-son-pierce-brown",
+    "title": "Golden Son",
+    "author": "Pierce Brown",
+    "coverUrl": "https://covers.openlibrary.org/b/id/8454351-L.jpg",
+    "status": "finished",
+    "year": 2026,
+    "rating": 5,
+    "notes": "",
+    "addedAt": "2026-09-01T03:41:10.592Z"
+  },
+  {
+    "id": "red-rising-pierce-brown",
+    "title": "Red Rising",
+    "author": "Pierce Brown",
+    "coverUrl": "https://covers.openlibrary.org/b/id/7316188-L.jpg",
+    "status": "finished",
+    "year": 2026,
+    "rating": 5,
+    "notes": "",
+    "addedAt": "2026-09-01T03:37:46.356Z"
+  },
+  {
+    "id": "atomic-habits-james-clear",
+    "title": "Atomic Habits",
+    "author": "James Clear",
+    "coverUrl": "https://covers.openlibrary.org/b/id/12539702-L.jpg",
+    "status": "finished",
+    "year": 2026,
+    "rating": 5,
+    "notes": "",
+    "addedAt": "2026-09-01T03:40:30.726Z"
+  },
+  {
+    "id": "just-enough-research-erika-hall",
+    "title": "Just Enough Research",
+    "author": "Erika Hall",
+    "coverUrl": "https://covers.openlibrary.org/b/id/7387007-L.jpg",
+    "status": "finished",
+    "year": 2026,
+    "rating": 3,
+    "notes": "",
+    "addedAt": "2026-09-01T03:38:58.435Z"
+  },
+  {
+    "id": "the-psychology-of-money-morgan-housel",
+    "title": "The Psychology of Money",
+    "author": "Morgan Housel",
+    "coverUrl": "https://covers.openlibrary.org/b/id/10389354-L.jpg",
+    "status": "finished",
+    "year": 2026,
+    "rating": 5,
+    "notes": "",
+    "addedAt": "2026-09-01T03:39:55.449Z"
+  }
+]

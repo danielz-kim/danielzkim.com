@@ -3,7 +3,6 @@ import VitalsSection from "@/components/vitals/VitalsSection";
 import WorkSection from "@/components/WorkSection";
 import AboutSection from "@/components/AboutSection";
 import ProjectsSection from "@/components/ProjectsSection";
-import DesignsSection from "@/components/DesignsSection";
 import PlaySection from "@/components/PlaySection";
 import WritingSection from "@/components/WritingSection";
 import ReadingSection from "@/components/ReadingSection";
@@ -16,7 +15,6 @@ export default function HomePage() {
       <WorkSection />
       <AboutSection />
       <ProjectsSection />
-      <DesignsSection />
       <PlaySection />
       <WritingSection />
       <ReadingSection />

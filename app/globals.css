@@ -51,6 +51,15 @@ body {
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
+  /* Top-level section title (Vitals, Work, About, etc.): larger / bold / darker */
+  .section-title {
+    font-family: var(--font-jetbrains-mono), monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #0f0f0f;
+  }
   /* Tag pill — consistent across all components */
   .tag-pill {
     @apply text-xs px-[15px] py-[7px] border border-[#e2e2e0] rounded-full text-secondary;

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Reorder, useDragControls } from "framer-motion";
+import type { WorkHistoryEntry } from "@/lib/types";
 
-type Tab = "writing" | "work" | "projects";
+type Tab = "writing" | "work" | "projects" | "reading";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -43,18 +45,6 @@ interface WritingMeta {
   excerpt: string;
 }
 
-interface WorkMeta {
-  slug: string;
-  title: string;
-  subtitle: string;
-  company: string;
-  date: string;
-  tags: string[];
-  featured: boolean;
-  readTime: string;
-  coverImage?: string;
-}
-
 interface Project {
   name: string;
   tagline: string;
@@ -64,6 +54,26 @@ interface Project {
   tags: string[];
   url?: string;
   featured: boolean;
+}
+
+interface Book {
+  id: string;
+  title: string;
+  author: string;
+  coverUrl?: string;
+  status: "wishlist" | "in-progress" | "finished";
+  year?: number | null;
+  rating?: number | null;
+  notes?: string;
+  addedAt: string;
+}
+
+interface OpenLibraryResult {
+  key: string;
+  title: string;
+  author_name?: string[];
+  first_publish_year?: number;
+  cover_i?: number;
 }
 
 // ── defaults ─────────────────────────────────────────────────────────────────
@@ -93,6 +103,17 @@ const defaultWork = {
   content: "",
 };
 
+const defaultWorkEntry: WorkHistoryEntry = {
+  company: "",
+  period: "",
+  role: "",
+  desc: "",
+  type: "Employment",
+  badgeType: "dark",
+  showBadge: false,
+  href: "",
+};
+
 const defaultProject: {
   name: string;
   tagline: string;
@@ -111,6 +132,24 @@ const defaultProject: {
   tags: "",
   url: "",
   featured: false,
+};
+
+const defaultBook: {
+  title: string;
+  author: string;
+  coverUrl: string;
+  status: Book["status"];
+  year: string;
+  rating: number | null;
+  notes: string;
+} = {
+  title: "",
+  author: "",
+  coverUrl: "",
+  status: "wishlist",
+  year: "",
+  rating: null,
+  notes: "",
 };
 
 // ── shared input styles ───────────────────────────────────────────────────────
@@ -410,6 +449,166 @@ function WorkForm({
   );
 }
 
+function WorkEntryForm({
+  form,
+  setForm,
+  isNew,
+  saving,
+  onSave,
+  onCancel,
+  showCaseStudyEditor,
+  caseStudyIsNew,
+  caseStudyForm,
+  setCaseStudyForm,
+  onAddCaseStudy,
+  onEditCaseStudy,
+  onRemoveCaseStudy,
+  onSaveCaseStudy,
+  onCancelCaseStudy,
+}: {
+  form: WorkHistoryEntry;
+  setForm: (f: WorkHistoryEntry) => void;
+  isNew: boolean;
+  saving: boolean;
+  onSave: () => void;
+  onCancel: () => void;
+  showCaseStudyEditor: boolean;
+  caseStudyIsNew: boolean;
+  caseStudyForm: typeof defaultWork;
+  setCaseStudyForm: (f: typeof defaultWork) => void;
+  onAddCaseStudy: () => void;
+  onEditCaseStudy: () => void;
+  onRemoveCaseStudy: () => void;
+  onSaveCaseStudy: () => void;
+  onCancelCaseStudy: () => void;
+}) {
+  function set(field: keyof WorkHistoryEntry, value: string | boolean) {
+    setForm({ ...form, [field]: value });
+  }
+
+  function setType(type: string) {
+    setForm({
+      ...form,
+      type,
+      badgeType: type === "Contract" ? "light" : "dark",
+      showBadge: type === "Contract",
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="font-heading font-light text-lg text-primary">
+        {isNew ? "New role" : "Edit role"}
+      </h2>
+
+      <Field label="Company">
+        <input
+          className={inputCls}
+          value={form.company}
+          onChange={(e) => set("company", e.target.value)}
+          placeholder="Nightfall Health"
+        />
+      </Field>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Role">
+          <input
+            className={inputCls}
+            value={form.role}
+            onChange={(e) => set("role", e.target.value)}
+            placeholder="Founding Product Manager"
+          />
+        </Field>
+        <Field label="Period">
+          <input
+            className={inputCls}
+            value={form.period}
+            onChange={(e) => set("period", e.target.value)}
+            placeholder="MAY 2026 — PRESENT"
+          />
+        </Field>
+      </div>
+
+      <Field label="Type">
+        <select
+          className={inputCls}
+          value={form.type}
+          onChange={(e) => setType(e.target.value)}
+        >
+          <option value="Employment">Employment</option>
+          <option value="Contract">Contract</option>
+        </select>
+      </Field>
+
+      <Field label="Description (optional)">
+        <textarea
+          className={`${inputCls} resize-none`}
+          rows={2}
+          value={form.desc}
+          onChange={(e) => set("desc", e.target.value)}
+          placeholder="One line shown under the role…"
+        />
+      </Field>
+
+      <FormActions saving={saving} onSave={onSave} onCancel={onCancel} />
+
+      {!isNew && (
+        <div className="pt-4 mt-4 border-t border-neutral-200">
+          <h3 className="text-sm font-medium text-primary mb-2">Case study</h3>
+
+          {!showCaseStudyEditor && form.href && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm text-secondary">
+                Published at {form.href}
+              </span>
+              <button
+                onClick={onEditCaseStudy}
+                className="text-xs text-primary underline"
+              >
+                Edit
+              </button>
+              <button
+                onClick={onRemoveCaseStudy}
+                className="text-xs text-red-500 underline"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
+          {!showCaseStudyEditor && !form.href && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm text-tertiary">
+                No case study yet — the &ldquo;See Work&rdquo; link stays hidden
+                until one is added.
+              </span>
+              <button
+                onClick={onAddCaseStudy}
+                className="text-xs bg-primary text-white px-3 py-1.5 rounded hover:bg-neutral-800 transition-colors shrink-0"
+              >
+                + Add case study
+              </button>
+            </div>
+          )}
+
+          {showCaseStudyEditor && (
+            <div className="mt-3 bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+              <WorkForm
+                form={caseStudyForm}
+                setForm={setCaseStudyForm}
+                isNew={caseStudyIsNew}
+                saving={saving}
+                onSave={onSaveCaseStudy}
+                onCancel={onCancelCaseStudy}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProjectForm({
   form,
   setForm,
@@ -520,6 +719,363 @@ function ProjectForm({
   );
 }
 
+function StarRating({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(value === n ? null : n)}
+          className={`text-lg leading-none transition-colors ${
+            value !== null && n <= value ? "text-primary" : "text-inactive hover:text-tertiary"
+          }`}
+        >
+          ★
+        </button>
+      ))}
+      {value !== null && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="text-xs text-tertiary hover:text-primary ml-1"
+        >
+          clear
+        </button>
+      )}
+    </div>
+  );
+}
+
+function BookForm({
+  form,
+  setForm,
+  isNew,
+  saving,
+  onSave,
+  onCancel,
+}: {
+  form: typeof defaultBook;
+  setForm: (f: typeof defaultBook) => void;
+  isNew: boolean;
+  saving: boolean;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<OpenLibraryResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  function set<K extends keyof typeof defaultBook>(field: K, value: typeof defaultBook[K]) {
+    setForm({ ...form, [field]: value });
+  }
+
+  async function runSearch() {
+    if (!query.trim()) return;
+    setSearching(true);
+    setSearchError("");
+    try {
+      const res = await fetch(
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(
+          query
+        )}&limit=8&fields=key,title,author_name,first_publish_year,cover_i`
+      );
+      const data = await res.json();
+      setResults(data.docs ?? []);
+    } catch {
+      setSearchError("Search failed — try again");
+    }
+    setSearching(false);
+  }
+
+  function pickResult(r: OpenLibraryResult) {
+    setForm({
+      ...form,
+      title: r.title,
+      author: r.author_name?.join(", ") ?? "",
+      coverUrl: r.cover_i
+        ? `https://covers.openlibrary.org/b/id/${r.cover_i}-L.jpg`
+        : form.coverUrl,
+    });
+    setResults([]);
+    setQuery("");
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="font-heading font-light text-lg text-primary">
+        {isNew ? "New book" : "Edit book"}
+      </h2>
+
+      {isNew && (
+        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3 space-y-2">
+          <label className={labelCls}>Search Open Library</label>
+          <div className="flex gap-2">
+            <input
+              className={inputCls}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  runSearch();
+                }
+              }}
+              placeholder="Search by title or author…"
+            />
+            <button
+              type="button"
+              onClick={runSearch}
+              disabled={searching}
+              className="text-sm bg-primary text-white px-3 py-2 rounded hover:bg-neutral-800 disabled:opacity-50 transition-colors shrink-0"
+            >
+              {searching ? "…" : "Search"}
+            </button>
+          </div>
+          {searchError && <p className="text-xs text-red-500">{searchError}</p>}
+          {results.length > 0 && (
+            <div className="space-y-1 max-h-64 overflow-y-auto">
+              {results.map((r) => (
+                <button
+                  type="button"
+                  key={r.key}
+                  onClick={() => pickResult(r)}
+                  className="w-full flex items-center gap-3 text-left p-2 rounded hover:bg-white border border-transparent hover:border-neutral-200 transition-colors"
+                >
+                  {r.cover_i ? (
+                    <img
+                      src={`https://covers.openlibrary.org/b/id/${r.cover_i}-S.jpg`}
+                      alt=""
+                      className="w-8 h-11 object-cover rounded-sm bg-neutral-200 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-11 rounded-sm bg-neutral-200 shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm text-primary truncate">{r.title}</p>
+                    <p className="text-xs text-secondary truncate">
+                      {r.author_name?.join(", ") ?? "Unknown author"}
+                      {r.first_publish_year ? ` · ${r.first_publish_year}` : ""}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex items-start gap-4">
+        {form.coverUrl ? (
+          <img
+            src={form.coverUrl}
+            alt=""
+            className="w-16 h-24 object-cover rounded bg-neutral-200 shrink-0"
+          />
+        ) : (
+          <div className="w-16 h-24 rounded bg-neutral-100 border border-dashed border-neutral-300 shrink-0" />
+        )}
+        <div className="flex-1 space-y-4">
+          <Field label="Title">
+            <input
+              className={inputCls}
+              value={form.title}
+              onChange={(e) => set("title", e.target.value)}
+              placeholder="Man's Search for Meaning"
+            />
+          </Field>
+          <Field label="Author">
+            <input
+              className={inputCls}
+              value={form.author}
+              onChange={(e) => set("author", e.target.value)}
+              placeholder="Viktor Frankl"
+            />
+          </Field>
+        </div>
+      </div>
+
+      <Field label="Cover image URL">
+        <input
+          className={inputCls}
+          value={form.coverUrl}
+          onChange={(e) => set("coverUrl", e.target.value)}
+          placeholder="https://covers.openlibrary.org/b/id/…-L.jpg"
+        />
+      </Field>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Status">
+          <select
+            className={inputCls}
+            value={form.status}
+            onChange={(e) => set("status", e.target.value as Book["status"])}
+          >
+            <option value="wishlist">Wishlist</option>
+            <option value="in-progress">In progress</option>
+            <option value="finished">Finished</option>
+          </select>
+        </Field>
+        <Field label="Year read">
+          <input
+            className={inputCls}
+            value={form.year}
+            onChange={(e) => set("year", e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="2026"
+            inputMode="numeric"
+          />
+        </Field>
+      </div>
+
+      <Field label="Rating">
+        <StarRating value={form.rating} onChange={(v) => set("rating", v)} />
+      </Field>
+
+      <Field label="Notes">
+        <textarea
+          className={`${inputCls} resize-y`}
+          rows={6}
+          value={form.notes}
+          onChange={(e) => set("notes", e.target.value)}
+          placeholder="What stuck with you…"
+        />
+      </Field>
+
+      <FormActions saving={saving} onSave={onSave} onCancel={onCancel} />
+    </div>
+  );
+}
+
+function BookListItem({
+  book,
+  isEditing,
+  onOpen,
+  onDelete,
+}: {
+  book: Book;
+  isEditing: boolean;
+  onOpen: () => void;
+  onDelete: () => void;
+}) {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={book}
+      as="div"
+      dragListener={false}
+      dragControls={dragControls}
+      className={`bg-white border rounded-lg p-3 flex items-center gap-2 transition-colors ${
+        isEditing ? "border-primary shadow-sm" : "border-neutral-200"
+      }`}
+    >
+      <div
+        onPointerDown={(e) => dragControls.start(e)}
+        title="Drag to reorder"
+        className="cursor-grab active:cursor-grabbing text-tertiary hover:text-primary shrink-0 select-none touch-none px-1"
+      >
+        ⠿
+      </div>
+      <div
+        onClick={onOpen}
+        className="flex items-start gap-2 min-w-0 flex-1 cursor-pointer"
+      >
+        {book.coverUrl ? (
+          <img
+            src={book.coverUrl}
+            alt=""
+            className="w-7 h-10 object-cover rounded-sm bg-neutral-200 shrink-0"
+          />
+        ) : (
+          <div className="w-7 h-10 rounded-sm bg-neutral-100 shrink-0" />
+        )}
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-primary truncate">{book.title}</p>
+          <p className="text-xs text-secondary mt-0.5 truncate">{book.author}</p>
+          <p className="text-xs text-tertiary mt-0.5">
+            {book.status === "wishlist"
+              ? "Wishlist"
+              : book.status === "in-progress"
+              ? "In progress"
+              : `Finished${book.year ? ` · ${book.year}` : ""}`}
+            {book.rating ? ` · ${"★".repeat(book.rating)}` : ""}
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="text-tertiary hover:text-red-500 text-lg leading-none shrink-0 transition-colors"
+      >
+        ×
+      </button>
+    </Reorder.Item>
+  );
+}
+
+function WorkHistoryListItem({
+  entry,
+  isEditing,
+  onOpen,
+  onDelete,
+}: {
+  entry: WorkHistoryEntry;
+  isEditing: boolean;
+  onOpen: () => void;
+  onDelete: () => void;
+}) {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={entry}
+      as="div"
+      dragListener={false}
+      dragControls={dragControls}
+      className={`bg-white border rounded-lg p-3 flex items-center gap-2 transition-colors ${
+        isEditing ? "border-primary shadow-sm" : "border-neutral-200"
+      }`}
+    >
+      <div
+        onPointerDown={(e) => dragControls.start(e)}
+        title="Drag to reorder"
+        className="cursor-grab active:cursor-grabbing text-tertiary hover:text-primary shrink-0 select-none touch-none px-1"
+      >
+        ⠿
+      </div>
+      <div onClick={onOpen} className="min-w-0 flex-1 cursor-pointer">
+        <p className="text-sm font-medium text-primary truncate">
+          {entry.company}
+        </p>
+        <p className="text-xs text-secondary mt-0.5 truncate">
+          {entry.role} · {entry.period}
+        </p>
+        <p className="text-xs text-tertiary mt-0.5">
+          {entry.href ? "Case study" : "No case study"}
+        </p>
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="text-tertiary hover:text-red-500 text-lg leading-none shrink-0 transition-colors"
+      >
+        ×
+      </button>
+    </Reorder.Item>
+  );
+}
+
 // ── StatusBadge ───────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
@@ -547,20 +1103,28 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("writing");
 
   const [writingList, setWritingList] = useState<WritingMeta[]>([]);
-  const [workList, setWorkList] = useState<WorkMeta[]>([]);
+  const [workHistoryList, setWorkHistoryList] = useState<WorkHistoryEntry[]>([]);
   const [projectsList, setProjectsList] = useState<Project[]>([]);
+  const [readingList, setReadingList] = useState<Book[]>([]);
 
   const [writingForm, setWritingForm] = useState(defaultWriting);
-  const [workForm, setWorkForm] = useState(defaultWork);
+  const [workEntryForm, setWorkEntryForm] = useState<WorkHistoryEntry>(defaultWorkEntry);
+  const [caseStudyForm, setCaseStudyForm] = useState(defaultWork);
   const [projectForm, setProjectForm] = useState(defaultProject);
+  const [bookForm, setBookForm] = useState(defaultBook);
 
   const [editingWriting, setEditingWriting] = useState<string | null>(null);
-  const [editingWork, setEditingWork] = useState<string | null>(null);
+  const [editingWorkIndex, setEditingWorkIndex] = useState<number | null>(null);
   const [editingProject, setEditingProject] = useState<string | null>(null);
+  const [editingBook, setEditingBook] = useState<string | null>(null);
 
   const [newWriting, setNewWriting] = useState(false);
-  const [newWork, setNewWork] = useState(false);
+  const [newWorkEntry, setNewWorkEntry] = useState(false);
   const [newProject, setNewProject] = useState(false);
+  const [newBook, setNewBook] = useState(false);
+
+  const [showCaseStudyEditor, setShowCaseStudyEditor] = useState(false);
+  const [caseStudyIsNew, setCaseStudyIsNew] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
@@ -597,22 +1161,28 @@ export default function AdminPage() {
       const res = await apiFetch("/api/admin/writing", password);
       setWritingList(await res.json());
     } else if (tab === "work") {
-      const res = await apiFetch("/api/admin/work", password);
-      setWorkList(await res.json());
-    } else {
+      const res = await apiFetch("/api/admin/work-history", password);
+      setWorkHistoryList(await res.json());
+    } else if (tab === "projects") {
       const res = await apiFetch("/api/admin/projects", password);
       setProjectsList(await res.json());
+    } else {
+      const res = await apiFetch("/api/admin/reading", password);
+      setReadingList(await res.json());
     }
   }, [authed, tab, password]);
 
   useEffect(() => {
     loadData();
     setEditingWriting(null);
-    setEditingWork(null);
+    setEditingWorkIndex(null);
     setEditingProject(null);
+    setEditingBook(null);
     setNewWriting(false);
-    setNewWork(false);
+    setNewWorkEntry(false);
     setNewProject(false);
+    setNewBook(false);
+    setShowCaseStudyEditor(false);
   }, [loadData]);
 
   // ── writing CRUD ────────────────────────────────────────────────────────────
@@ -677,61 +1247,35 @@ export default function AdminPage() {
     if (editingWriting === slug) setEditingWriting(null);
   }
 
-  // ── work CRUD ───────────────────────────────────────────────────────────────
+  // ── work history CRUD ─────────────────────────────────────────────────────────
 
-  async function openWork(slug: string) {
-    const res = await apiFetch(`/api/admin/work/${slug}`, password);
-    const { frontmatter, content } = await res.json();
-    setWorkForm({
-      slug,
-      title: frontmatter.title ?? "",
-      subtitle: frontmatter.subtitle ?? "",
-      company: frontmatter.company ?? "",
-      date: frontmatter.date ?? "",
-      tags: Array.isArray(frontmatter.tags) ? frontmatter.tags.join(", ") : "",
-      featured: !!frontmatter.featured,
-      readTime: frontmatter.readTime ?? "",
-      coverImage: frontmatter.coverImage ?? "",
-      content: content ?? "",
-    });
-    setEditingWork(slug);
-    setNewWork(false);
+  function openWorkEntry(index: number) {
+    setWorkEntryForm({ ...workHistoryList[index] });
+    setEditingWorkIndex(index);
+    setNewWorkEntry(false);
+    setShowCaseStudyEditor(false);
   }
 
-  async function saveWork() {
+  async function saveWorkEntry() {
     setSaving(true);
-    const frontmatter: Record<string, unknown> = {
-      title: workForm.title,
-      subtitle: workForm.subtitle,
-      company: workForm.company,
-      slug: editingWork ?? workForm.slug,
-      date: workForm.date,
-      tags: tagsToArray(workForm.tags),
-      featured: workForm.featured,
-      readTime: workForm.readTime,
-    };
-    if (workForm.coverImage) frontmatter.coverImage = workForm.coverImage;
+    const updated = [...workHistoryList];
+    if (editingWorkIndex !== null) {
+      updated[editingWorkIndex] = workEntryForm;
+    } else {
+      updated.push(workEntryForm);
+    }
 
-    const res = editingWork
-      ? await apiFetch(`/api/admin/work/${editingWork}`, password, {
-          method: "PUT",
-          body: JSON.stringify({ frontmatter, content: workForm.content }),
-        })
-      : await apiFetch("/api/admin/work", password, {
-          method: "POST",
-          body: JSON.stringify({
-            frontmatter,
-            content: workForm.content,
-            slug: workForm.slug,
-          }),
-        });
+    const res = await apiFetch("/api/admin/work-history", password, {
+      method: "PUT",
+      body: JSON.stringify(updated),
+    });
 
     if (res.ok) {
       showToast("Saved");
-      await loadData();
-      if (!editingWork) {
-        setNewWork(false);
-        setWorkForm({ ...defaultWork, date: today() });
+      setWorkHistoryList(updated);
+      if (newWorkEntry) {
+        setNewWorkEntry(false);
+        setEditingWorkIndex(updated.length - 1);
       }
     } else {
       const { error } = await res.json().catch(() => ({ error: "Error" }));
@@ -740,11 +1284,140 @@ export default function AdminPage() {
     setSaving(false);
   }
 
-  async function deleteWork(slug: string) {
-    if (!confirm(`Delete "${slug}"?`)) return;
+  async function deleteWorkEntry(index: number) {
+    const entry = workHistoryList[index];
+    if (!confirm(`Delete "${entry.company}"?`)) return;
+    const updated = workHistoryList.filter((_, i) => i !== index);
+    await apiFetch("/api/admin/work-history", password, {
+      method: "PUT",
+      body: JSON.stringify(updated),
+    });
+    setWorkHistoryList(updated);
+    if (editingWorkIndex === index) setEditingWorkIndex(null);
+  }
+
+  const workHistoryReorderTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleReorderWorkHistory(newOrder: WorkHistoryEntry[]) {
+    setWorkHistoryList(newOrder);
+    if (workHistoryReorderTimeout.current) clearTimeout(workHistoryReorderTimeout.current);
+    workHistoryReorderTimeout.current = setTimeout(() => {
+      apiFetch("/api/admin/work-history", password, {
+        method: "PUT",
+        body: JSON.stringify(newOrder),
+      }).catch(() => {});
+    }, 500);
+  }
+
+  // ── case study CRUD (attached to a work history entry) ───────────────────────
+
+  async function openCaseStudyEditor() {
+    if (workEntryForm.href) {
+      const slug = workEntryForm.href.replace(/^\/work\//, "");
+      const res = await apiFetch(`/api/admin/work/${slug}`, password);
+      const { frontmatter, content } = await res.json();
+      setCaseStudyForm({
+        slug,
+        title: frontmatter.title ?? "",
+        subtitle: frontmatter.subtitle ?? "",
+        company: frontmatter.company ?? workEntryForm.company,
+        date: frontmatter.date ?? today(),
+        tags: Array.isArray(frontmatter.tags) ? frontmatter.tags.join(", ") : "",
+        featured: !!frontmatter.featured,
+        readTime: frontmatter.readTime ?? "",
+        coverImage: frontmatter.coverImage ?? "",
+        content: content ?? "",
+      });
+      setCaseStudyIsNew(false);
+    } else {
+      setCaseStudyForm({
+        ...defaultWork,
+        date: today(),
+        company: workEntryForm.company,
+        slug: titleToSlug(workEntryForm.company),
+      });
+      setCaseStudyIsNew(true);
+    }
+    setShowCaseStudyEditor(true);
+  }
+
+  async function saveCaseStudy() {
+    if (editingWorkIndex === null) return;
+    setSaving(true);
+    const frontmatter: Record<string, unknown> = {
+      title: caseStudyForm.title,
+      subtitle: caseStudyForm.subtitle,
+      company: caseStudyForm.company,
+      slug: caseStudyForm.slug,
+      date: caseStudyForm.date,
+      tags: tagsToArray(caseStudyForm.tags),
+      featured: caseStudyForm.featured,
+      readTime: caseStudyForm.readTime,
+    };
+    if (caseStudyForm.coverImage) frontmatter.coverImage = caseStudyForm.coverImage;
+
+    if (caseStudyIsNew) {
+      const res = await apiFetch("/api/admin/work", password, {
+        method: "POST",
+        body: JSON.stringify({
+          frontmatter,
+          content: caseStudyForm.content,
+          slug: caseStudyForm.slug,
+        }),
+      });
+
+      if (res.ok) {
+        const { slug } = await res.json();
+        const href = `/work/${slug}`;
+        const updated = [...workHistoryList];
+        updated[editingWorkIndex] = { ...updated[editingWorkIndex], href };
+        await apiFetch("/api/admin/work-history", password, {
+          method: "PUT",
+          body: JSON.stringify(updated),
+        });
+        setWorkHistoryList(updated);
+        setWorkEntryForm({ ...workEntryForm, href });
+        setCaseStudyIsNew(false);
+        setShowCaseStudyEditor(false);
+        showToast("Case study created");
+      } else {
+        const { error } = await res.json().catch(() => ({ error: "Error" }));
+        showToast(`Error: ${error}`);
+      }
+    } else {
+      const res = await apiFetch(`/api/admin/work/${caseStudyForm.slug}`, password, {
+        method: "PUT",
+        body: JSON.stringify({ frontmatter, content: caseStudyForm.content }),
+      });
+
+      if (res.ok) {
+        showToast("Saved");
+        setShowCaseStudyEditor(false);
+      } else {
+        const { error } = await res.json().catch(() => ({ error: "Error" }));
+        showToast(`Error: ${error}`);
+      }
+    }
+    setSaving(false);
+  }
+
+  async function removeCaseStudy() {
+    if (editingWorkIndex === null || !workEntryForm.href) return;
+    if (!confirm("Remove this case study? Its content will be deleted permanently.")) return;
+
+    const slug = workEntryForm.href.replace(/^\/work\//, "");
     await apiFetch(`/api/admin/work/${slug}`, password, { method: "DELETE" });
-    await loadData();
-    if (editingWork === slug) setEditingWork(null);
+
+    const updated = [...workHistoryList];
+    updated[editingWorkIndex] = { ...updated[editingWorkIndex], href: "" };
+    await apiFetch("/api/admin/work-history", password, {
+      method: "PUT",
+      body: JSON.stringify(updated),
+    });
+    setWorkHistoryList(updated);
+    setWorkEntryForm({ ...workEntryForm, href: "" });
+    setShowCaseStudyEditor(false);
+    showToast("Case study removed");
   }
 
   // ── projects CRUD ────────────────────────────────────────────────────────────
@@ -813,6 +1486,78 @@ export default function AdminPage() {
     if (editingProject === name) setEditingProject(null);
   }
 
+  // ── reading CRUD ────────────────────────────────────────────────────────────
+
+  function openBook(b: Book) {
+    setBookForm({
+      title: b.title,
+      author: b.author,
+      coverUrl: b.coverUrl ?? "",
+      status: b.status,
+      year: b.year ? String(b.year) : "",
+      rating: b.rating ?? null,
+      notes: b.notes ?? "",
+    });
+    setEditingBook(b.id);
+    setNewBook(false);
+  }
+
+  async function saveBook() {
+    setSaving(true);
+    const payload = {
+      title: bookForm.title,
+      author: bookForm.author,
+      coverUrl: bookForm.coverUrl || undefined,
+      status: bookForm.status,
+      year: bookForm.year ? Number(bookForm.year) : null,
+      rating: bookForm.rating,
+      notes: bookForm.notes,
+    };
+
+    const res = editingBook
+      ? await apiFetch(`/api/admin/reading/${editingBook}`, password, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        })
+      : await apiFetch("/api/admin/reading", password, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+    if (res.ok) {
+      showToast("Saved");
+      await loadData();
+      if (!editingBook) {
+        setNewBook(false);
+        setBookForm(defaultBook);
+      }
+    } else {
+      const { error } = await res.json().catch(() => ({ error: "Error" }));
+      showToast(`Error: ${error}`);
+    }
+    setSaving(false);
+  }
+
+  async function deleteBook(id: string) {
+    if (!confirm("Delete this book?")) return;
+    await apiFetch(`/api/admin/reading/${id}`, password, { method: "DELETE" });
+    await loadData();
+    if (editingBook === id) setEditingBook(null);
+  }
+
+  const reorderTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleReorderBooks(newOrder: Book[]) {
+    setReadingList(newOrder);
+    if (reorderTimeout.current) clearTimeout(reorderTimeout.current);
+    reorderTimeout.current = setTimeout(() => {
+      apiFetch("/api/admin/reading/reorder", password, {
+        method: "PUT",
+        body: JSON.stringify({ ids: newOrder.map((b) => b.id) }),
+      }).catch(() => {});
+    }, 500);
+  }
+
   // ── render: password gate ────────────────────────────────────────────────────
 
   if (!authed) {
@@ -859,15 +1604,19 @@ export default function AdminPage() {
     tab === "writing"
       ? editingWriting !== null || newWriting
       : tab === "work"
-      ? editingWork !== null || newWork
-      : editingProject !== null || newProject;
+      ? editingWorkIndex !== null || newWorkEntry
+      : tab === "projects"
+      ? editingProject !== null || newProject
+      : editingBook !== null || newBook;
 
   const listCount =
     tab === "writing"
       ? writingList.length
       : tab === "work"
-      ? workList.length
-      : projectsList.length;
+      ? workHistoryList.length
+      : tab === "projects"
+      ? projectsList.length
+      : readingList.length;
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-neutral-50 mt-14">
@@ -878,7 +1627,7 @@ export default function AdminPage() {
             <span className="text-xs font-medium text-tertiary uppercase tracking-wider">
               Content
             </span>
-            {(["writing", "work", "projects"] as Tab[]).map((t) => (
+            {(["writing", "work", "projects", "reading"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -923,7 +1672,14 @@ export default function AdminPage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs text-tertiary">
-                {listCount} {tab === "writing" ? "posts" : tab === "work" ? "case studies" : "projects"}
+                {listCount}{" "}
+                {tab === "writing"
+                  ? "posts"
+                  : tab === "work"
+                  ? "roles"
+                  : tab === "projects"
+                  ? "projects"
+                  : "books"}
               </span>
               <button
                 onClick={() => {
@@ -932,13 +1688,18 @@ export default function AdminPage() {
                     setEditingWriting(null);
                     setNewWriting(true);
                   } else if (tab === "work") {
-                    setWorkForm({ ...defaultWork, date: today() });
-                    setEditingWork(null);
-                    setNewWork(true);
-                  } else {
+                    setWorkEntryForm(defaultWorkEntry);
+                    setEditingWorkIndex(null);
+                    setNewWorkEntry(true);
+                    setShowCaseStudyEditor(false);
+                  } else if (tab === "projects") {
                     setProjectForm(defaultProject);
                     setEditingProject(null);
                     setNewProject(true);
+                  } else {
+                    setBookForm(defaultBook);
+                    setEditingBook(null);
+                    setNewBook(true);
                   }
                 }}
                 className="text-xs bg-primary text-white px-3 py-1.5 rounded hover:bg-neutral-800 transition-colors"
@@ -978,41 +1739,25 @@ export default function AdminPage() {
                 </div>
               ))}
 
-            {tab === "work" &&
-              workList.map((item) => (
-                <div
-                  key={item.slug}
-                  onClick={() => openWork(item.slug)}
-                  className={`bg-white border rounded-lg p-3 cursor-pointer transition-colors hover:border-neutral-300 ${
-                    editingWork === item.slug
-                      ? "border-primary shadow-sm"
-                      : "border-neutral-200"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-primary truncate">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-secondary mt-0.5">
-                        {item.company} · {item.date}
-                        {item.featured && (
-                          <span className="ml-2 text-tertiary">★</span>
-                        )}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteWork(item.slug);
-                      }}
-                      className="text-tertiary hover:text-red-500 text-lg leading-none shrink-0 transition-colors"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-              ))}
+            {tab === "work" && (
+              <Reorder.Group
+                as="div"
+                axis="y"
+                values={workHistoryList}
+                onReorder={handleReorderWorkHistory}
+                className="space-y-2"
+              >
+                {workHistoryList.map((entry, index) => (
+                  <WorkHistoryListItem
+                    key={entry.company}
+                    entry={entry}
+                    isEditing={editingWorkIndex === index}
+                    onOpen={() => openWorkEntry(index)}
+                    onDelete={() => deleteWorkEntry(index)}
+                  />
+                ))}
+              </Reorder.Group>
+            )}
 
             {tab === "projects" &&
               projectsList.map((item) => (
@@ -1049,6 +1794,26 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+
+            {tab === "reading" && (
+              <Reorder.Group
+                as="div"
+                axis="y"
+                values={readingList}
+                onReorder={handleReorderBooks}
+                className="space-y-2"
+              >
+                {readingList.map((item) => (
+                  <BookListItem
+                    key={item.id}
+                    book={item}
+                    isEditing={editingBook === item.id}
+                    onOpen={() => openBook(item)}
+                    onDelete={() => deleteBook(item.id)}
+                  />
+                ))}
+              </Reorder.Group>
+            )}
           </div>
 
           {/* right: form */}
@@ -1067,17 +1832,26 @@ export default function AdminPage() {
                   }}
                 />
               )}
-              {tab === "work" && (editingWork !== null || newWork) && (
-                <WorkForm
-                  form={workForm}
-                  setForm={setWorkForm}
-                  isNew={newWork}
+              {tab === "work" && (editingWorkIndex !== null || newWorkEntry) && (
+                <WorkEntryForm
+                  form={workEntryForm}
+                  setForm={setWorkEntryForm}
+                  isNew={newWorkEntry}
                   saving={saving}
-                  onSave={saveWork}
+                  onSave={saveWorkEntry}
                   onCancel={() => {
-                    setEditingWork(null);
-                    setNewWork(false);
+                    setEditingWorkIndex(null);
+                    setNewWorkEntry(false);
                   }}
+                  showCaseStudyEditor={showCaseStudyEditor}
+                  caseStudyIsNew={caseStudyIsNew}
+                  caseStudyForm={caseStudyForm}
+                  setCaseStudyForm={setCaseStudyForm}
+                  onAddCaseStudy={openCaseStudyEditor}
+                  onEditCaseStudy={openCaseStudyEditor}
+                  onRemoveCaseStudy={removeCaseStudy}
+                  onSaveCaseStudy={saveCaseStudy}
+                  onCancelCaseStudy={() => setShowCaseStudyEditor(false)}
                 />
               )}
               {tab === "projects" && (editingProject !== null || newProject) && (
@@ -1090,6 +1864,19 @@ export default function AdminPage() {
                   onCancel={() => {
                     setEditingProject(null);
                     setNewProject(false);
+                  }}
+                />
+              )}
+              {tab === "reading" && (editingBook !== null || newBook) && (
+                <BookForm
+                  form={bookForm}
+                  setForm={setBookForm}
+                  isNew={newBook}
+                  saving={saving}
+                  onSave={saveBook}
+                  onCancel={() => {
+                    setEditingBook(null);
+                    setNewBook(false);
                   }}
                 />
               )}

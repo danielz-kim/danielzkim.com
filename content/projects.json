@@ -7,7 +7,8 @@
     "stat": "Read by Elon Musk · 20k views",
     "tags": [],
     "url": "https://www.neurotechintelligenceagency.com/",
-    "featured": true
+    "featured": true,
+    "previewImage": "/images/projects/nia.png"
   },
   {
     "name": "Hemi",
@@ -17,7 +18,8 @@
     "stat": "80% retention · 85% trial → paid",
     "tags": [],
     "url": "https://www.hemifocus.com/",
-    "featured": true
+    "featured": true,
+    "previewImage": "/images/projects/hemi.png"
   },
   {
     "name": "Promptgen",
@@ -27,7 +29,8 @@
     "stat": "Built in a weekend · 30+ prompts generated",
     "tags": [],
     "url": "https://uxpromptgenerator.netlify.app/",
-    "featured": false
+    "featured": false,
+    "previewImage": "/images/projects/promptgen.png"
   },
   {
     "name": "Neuraldrift",
@@ -37,6 +40,7 @@
     "stat": "Built in a weekend · led to Hemi",
     "tags": [],
     "url": "https://neuraldrift.danielzkim.com/",
-    "featured": false
+    "featured": false,
+    "previewImage": "/images/projects/neuraldrift.png"
   }
 ]

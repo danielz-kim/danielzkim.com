@@ -2,9 +2,7 @@ import VitalCard from "./VitalCard";
 import ChessEloCard from "./ChessEloCard";
 import EducationCard from "./EducationCard";
 import NightfallCard from "./NightfallCard";
-import SideVenturesCard from "./SideVenturesCard";
-import LinkedInCard from "./LinkedInCard";
-import TikTokCard from "./TikTokCard";
+import SocialsCard from "./SocialsCard";
 import SomneeCard from "./SomneeCard";
 import LekkoCard from "./LekkoCard";
 import ClashRoyaleCard from "./ClashRoyaleCard";
@@ -17,7 +15,7 @@ export default function VitalsSection() {
         <span className="font-mono text-[11px] font-medium tracking-[0.14em] text-accent">
           01
         </span>
-        <span className="label-meta text-tertiary">Accomplishments</span>
+        <span className="section-title">Vitals</span>
         <span className="flex-1 h-px bg-border" />
       </div>
 
@@ -31,25 +29,19 @@ export default function VitalsSection() {
         <VitalCard index={2} className="col-span-1">
           <NightfallCard />
         </VitalCard>
-        <VitalCard index={3} className="col-span-2 md:col-span-2">
-          <SideVenturesCard />
+        <VitalCard index={3} className="col-span-1">
+          <SocialsCard />
         </VitalCard>
-        <VitalCard index={4} className="col-span-1">
-          <LinkedInCard />
-        </VitalCard>
-        <VitalCard index={5} className="col-span-2">
-          <TikTokCard />
-        </VitalCard>
-        <VitalCard index={6} className="col-span-2">
+        <VitalCard index={4} className="col-span-2">
           <SomneeCard />
         </VitalCard>
-        <VitalCard index={7} className="col-span-2">
+        <VitalCard index={5} className="col-span-2 row-span-2">
           <LekkoCard />
         </VitalCard>
-        <VitalCard index={8} className="col-span-2">
+        <VitalCard index={6} className="col-span-1 row-span-2">
           <ClashRoyaleCard />
         </VitalCard>
-        <VitalCard index={9} className="col-span-2 md:col-span-4">
+        <VitalCard index={7} className="col-span-1 row-span-2">
           <AcademicsCard />
         </VitalCard>
       </div>

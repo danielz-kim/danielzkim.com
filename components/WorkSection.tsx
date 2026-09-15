@@ -11,7 +11,7 @@ export default function WorkSection() {
         <span className="font-mono text-[11px] font-medium tracking-[0.14em] text-accent">
           02
         </span>
-        <span className="label-meta text-tertiary">Work</span>
+        <span className="section-title">Work</span>
         <span className="flex-1 h-px bg-border" />
       </div>
       <div>
