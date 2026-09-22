@@ -16,6 +16,16 @@ function formatDate(dateStr: string): string {
 }
 
 export default function WritingList({ posts }: Props) {
+  if (posts.length === 0) {
+    return (
+      <div className="border-[1.5px] border-dashed border-[#dcdcda] rounded-xl p-9 flex items-center justify-center">
+        <span className="font-mono text-xs tracking-[0.04em] text-faint">
+          Coming soon...
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div>
       {posts.map((post) => (

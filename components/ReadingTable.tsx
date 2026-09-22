@@ -29,48 +29,47 @@ export default function ReadingTable({ books }: { books: Book[] }) {
         )
       : 0;
 
+  const gridCols =
+    "grid-cols-[1fr_70px] sm:grid-cols-[1fr_140px_70px] md:grid-cols-[1fr_140px_90px_70px]";
+
   return (
     <div className="relative">
-      <table className="w-full border-collapse text-left">
-        <thead>
-          <tr className="border-b border-border">
-            <th className="label-meta font-normal text-tertiary pb-2 pr-4">Title</th>
-            <th className="label-meta font-normal text-tertiary pb-2 pr-4 hidden sm:table-cell">
-              Author
-            </th>
-            <th className="label-meta font-normal text-tertiary pb-2 pr-4 hidden md:table-cell">
-              Year
-            </th>
-            <th className="label-meta font-normal text-tertiary pb-2">Rating</th>
-          </tr>
-        </thead>
-        <tbody>
-          {books.map((book) => (
-            <tr
-              key={book.id}
-              onMouseMove={handleMove(book)}
-              onMouseLeave={() => setHover(null)}
-              className="border-b border-border-faint last:border-b-0 hover:bg-tint transition-colors"
-            >
-              <td className="py-3 pr-4">
-                <p className="text-[15px] font-medium text-primary leading-snug">
-                  {book.title}
-                </p>
-                <p className="text-sm text-secondary sm:hidden">{book.author}</p>
-              </td>
-              <td className="py-3 pr-4 text-sm text-secondary hidden sm:table-cell">
-                {book.author}
-              </td>
-              <td className="py-3 pr-4 font-mono text-xs text-tertiary hidden md:table-cell">
-                {book.year ?? "—"}
-              </td>
-              <td className="py-3 font-mono text-xs text-primary">
-                {book.rating ? "★".repeat(book.rating) : "—"}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className={`grid ${gridCols} gap-4 border-b border-border pb-2`}>
+        <span className="label-meta font-normal text-tertiary">Title</span>
+        <span className="label-meta font-normal text-tertiary hidden sm:block">
+          Author
+        </span>
+        <span className="label-meta font-normal text-tertiary hidden md:block">
+          Year
+        </span>
+        <span className="label-meta font-normal text-tertiary">Rating</span>
+      </div>
+      <div>
+        {books.map((book) => (
+          <div
+            key={book.id}
+            onMouseMove={handleMove(book)}
+            onMouseLeave={() => setHover(null)}
+            className={`grid ${gridCols} gap-4 items-center py-3 border-b border-border-faint last:border-b-0 hover:bg-tint transition-colors`}
+          >
+            <div>
+              <p className="text-[15px] font-medium text-primary leading-snug">
+                {book.title}
+              </p>
+              <p className="text-sm text-secondary sm:hidden">{book.author}</p>
+            </div>
+            <div className="text-sm text-secondary hidden sm:block">
+              {book.author}
+            </div>
+            <div className="font-mono text-xs text-tertiary hidden md:block">
+              {book.year ?? "—"}
+            </div>
+            <div className="font-mono text-xs text-primary">
+              {book.rating ? "★".repeat(book.rating) : "—"}
+            </div>
+          </div>
+        ))}
+      </div>
 
       <AnimatePresence>
         {hover?.book.coverUrl && (

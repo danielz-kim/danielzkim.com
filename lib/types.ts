@@ -28,6 +28,7 @@ export interface Project {
   url?: string;
   featured: boolean;
   previewImage?: string;
+  caseStudy?: string;
 }
 
 export interface CaseStudyMeta extends CaseStudyFrontmatter {

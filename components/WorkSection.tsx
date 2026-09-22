@@ -14,11 +14,19 @@ export default function WorkSection() {
         <span className="section-title">Work</span>
         <span className="flex-1 h-px bg-border" />
       </div>
-      <div>
-        {workHistory.map((entry) => (
-          <WorkHistoryRow key={entry.company} entry={entry} />
-        ))}
-      </div>
+      {workHistory.length === 0 ? (
+        <div className="border-[1.5px] border-dashed border-[#dcdcda] rounded-xl p-9 flex items-center justify-center">
+          <span className="font-mono text-xs tracking-[0.04em] text-faint">
+            Coming soon...
+          </span>
+        </div>
+      ) : (
+        <div>
+          {workHistory.map((entry) => (
+            <WorkHistoryRow key={entry.company} entry={entry} />
+          ))}
+        </div>
+      )}
       <div className="border-t border-border-light" />
     </section>
   );

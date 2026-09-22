@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Project } from "@/lib/types";
 import { clsx } from "clsx";
 
@@ -22,13 +23,8 @@ const statusLabel: Record<Project["status"], string> = {
 };
 
 export default function ProjectCard({ project }: Props) {
-  return (
-    <a
-      href={project.url}
-      target={project.url ? "_blank" : undefined}
-      rel={project.url ? "noopener noreferrer" : undefined}
-      className="flex flex-col border border-border rounded-xl p-[34px] min-h-[280px] bg-card no-underline text-inherit"
-    >
+  const body = (
+    <>
       <div className="flex items-center justify-between mb-auto">
         <span className="font-mono text-[11px] tracking-[0.04em] text-label">
           {project.kind}
@@ -54,6 +50,34 @@ export default function ProjectCard({ project }: Props) {
           {project.stat}
         </div>
       )}
-    </a>
+    </>
+  );
+
+  return (
+    <div className="flex flex-col border border-border rounded-xl p-[34px] min-h-[280px] bg-card">
+      {project.url ? (
+        <a
+          href={project.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col flex-1 no-underline text-inherit"
+        >
+          {body}
+        </a>
+      ) : (
+        <div className="flex flex-col flex-1">{body}</div>
+      )}
+
+      {project.caseStudy && (
+        <div className="mt-5 pt-5 border-t border-border-light">
+          <Link
+            href={`/projects/${encodeURIComponent(project.name)}`}
+            className="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.06em] uppercase text-primary hover:text-secondary transition-colors no-underline"
+          >
+            See case study <span className="text-[#c4c4c4]">→</span>
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }

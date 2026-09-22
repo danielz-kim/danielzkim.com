@@ -47,13 +47,15 @@ interface WritingMeta {
 
 interface Project {
   name: string;
-  tagline: string;
+  kind: string;
   description: string;
   status: "profitable" | "active" | "in development" | "archived";
   stat?: string | null;
   tags: string[];
   url?: string;
   featured: boolean;
+  previewImage?: string;
+  caseStudy?: string;
 }
 
 interface Book {
@@ -116,22 +118,26 @@ const defaultWorkEntry: WorkHistoryEntry = {
 
 const defaultProject: {
   name: string;
-  tagline: string;
+  kind: string;
   description: string;
   status: Project["status"];
   stat: string;
   tags: string;
   url: string;
   featured: boolean;
+  previewImage: string;
+  caseStudy: string;
 } = {
   name: "",
-  tagline: "",
+  kind: "",
   description: "",
   status: "active",
   stat: "",
   tags: "",
   url: "",
   featured: false,
+  previewImage: "",
+  caseStudy: "",
 };
 
 const defaultBook: {
@@ -644,12 +650,12 @@ function ProjectForm({
         />
       </Field>
 
-      <Field label="Tagline">
+      <Field label="Kind">
         <input
           className={inputCls}
-          value={form.tagline}
-          onChange={(e) => set("tagline", e.target.value)}
-          placeholder="I built a translation layer for neurotech."
+          value={form.kind}
+          onChange={(e) => set("kind", e.target.value)}
+          placeholder="Neurotech · SaaS"
         />
       </Field>
 
@@ -704,6 +710,15 @@ function ProjectForm({
         />
       </Field>
 
+      <Field label="Preview image URL (shown on hover)">
+        <input
+          className={inputCls}
+          value={form.previewImage}
+          onChange={(e) => set("previewImage", e.target.value)}
+          placeholder="/images/projects/nia.png"
+        />
+      </Field>
+
       <label className="flex items-center gap-2 cursor-pointer">
         <input
           type="checkbox"
@@ -713,6 +728,17 @@ function ProjectForm({
         />
         <span className="text-sm text-secondary">Featured on homepage</span>
       </label>
+
+      <Field label="Case study (Markdown / MDX, optional)">
+        <textarea
+          className={`${inputCls} font-mono text-xs resize-y`}
+          rows={14}
+          value={form.caseStudy}
+          onChange={(e) => set("caseStudy", e.target.value)}
+          placeholder="Leave blank to hide the “See case study” button on this project's card…"
+          spellCheck={false}
+        />
+      </Field>
 
       <FormActions saving={saving} onSave={onSave} onCancel={onCancel} />
     </div>
@@ -803,6 +829,7 @@ function BookForm({
       coverUrl: r.cover_i
         ? `https://covers.openlibrary.org/b/id/${r.cover_i}-L.jpg`
         : form.coverUrl,
+      year: r.first_publish_year ? String(r.first_publish_year) : form.year,
     });
     setResults([]);
     setQuery("");
@@ -923,12 +950,12 @@ function BookForm({
             <option value="finished">Finished</option>
           </select>
         </Field>
-        <Field label="Year read">
+        <Field label="Publication year">
           <input
             className={inputCls}
             value={form.year}
             onChange={(e) => set("year", e.target.value.replace(/[^0-9]/g, ""))}
-            placeholder="2026"
+            placeholder="2019"
             inputMode="numeric"
           />
         </Field>
@@ -1425,13 +1452,15 @@ export default function AdminPage() {
   function openProject(p: Project) {
     setProjectForm({
       name: p.name,
-      tagline: p.tagline,
+      kind: p.kind,
       description: p.description,
       status: p.status,
       stat: p.stat ?? "",
       tags: Array.isArray(p.tags) ? p.tags.join(", ") : "",
       url: p.url ?? "",
       featured: p.featured,
+      previewImage: p.previewImage ?? "",
+      caseStudy: p.caseStudy ?? "",
     });
     setEditingProject(p.name);
     setNewProject(false);
@@ -1441,13 +1470,15 @@ export default function AdminPage() {
     setSaving(true);
     const project = {
       name: projectForm.name,
-      tagline: projectForm.tagline,
+      kind: projectForm.kind,
       description: projectForm.description,
       status: projectForm.status,
       stat: projectForm.stat || null,
       tags: tagsToArray(projectForm.tags),
       ...(projectForm.url ? { url: projectForm.url } : {}),
       featured: projectForm.featured,
+      ...(projectForm.previewImage ? { previewImage: projectForm.previewImage } : {}),
+      ...(projectForm.caseStudy ? { caseStudy: projectForm.caseStudy } : {}),
     };
 
     const res = editingProject

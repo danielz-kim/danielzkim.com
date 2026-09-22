@@ -8,7 +8,8 @@
     "tags": [],
     "url": "https://www.neurotechintelligenceagency.com/",
     "featured": true,
-    "previewImage": "/images/projects/nia.png"
+    "previewImage": "/images/projects/nia.png",
+    "caseStudy": "test"
   },
   {
     "name": "Hemi",

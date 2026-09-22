@@ -25,11 +25,19 @@ export default function ProjectsPage() {
           </div>
         </FadeIn>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {projects.map((project) => (
-            <ProjectCard key={project.name} project={project} />
-          ))}
-        </div>
+        {projects.length === 0 ? (
+          <div className="border-[1.5px] border-dashed border-[#dcdcda] rounded-xl p-9 flex items-center justify-center">
+            <span className="font-mono text-xs tracking-[0.04em] text-faint">
+              Coming soon...
+            </span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {projects.map((project) => (
+              <ProjectCard key={project.name} project={project} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
