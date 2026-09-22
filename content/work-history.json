@@ -17,7 +17,7 @@
     "type": "Employment",
     "badgeType": "dark",
     "showBadge": false,
-    "href": "/work/somnee"
+    "href": ""
   },
   {
     "company": "Salesforce",
@@ -47,7 +47,7 @@
     "type": "Employment",
     "badgeType": "dark",
     "showBadge": false,
-    "href": "/work/promaxo"
+    "href": ""
   },
   {
     "company": "Apple",
@@ -67,6 +67,6 @@
     "type": "Employment",
     "badgeType": "dark",
     "showBadge": false,
-    "href": "/work/lekko"
+    "href": ""
   }
 ]
