@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { getFile, putFile } from "@/lib/github-content";
 
-const projectsFile = path.join(process.cwd(), "content", "projects.json");
+const projectsFile = "content/projects.json";
 
 function checkAuth(req: NextRequest) {
   return req.headers.get("x-admin-password") === process.env.ADMIN_PASSWORD;
@@ -11,15 +10,22 @@ function checkAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  return NextResponse.json(JSON.parse(fs.readFileSync(projectsFile, "utf-8")));
+  const file = await getFile(projectsFile);
+  return NextResponse.json(file ? JSON.parse(file.content) : []);
 }
 
 export async function POST(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const newProject = await req.json();
-  const projects = JSON.parse(fs.readFileSync(projectsFile, "utf-8"));
+  const file = await getFile(projectsFile);
+  const projects = file ? JSON.parse(file.content) : [];
   projects.push(newProject);
-  fs.writeFileSync(projectsFile, JSON.stringify(projects, null, 2));
+  await putFile(
+    projectsFile,
+    JSON.stringify(projects, null, 2),
+    `Add project: ${newProject?.name ?? ""}`,
+    file?.sha
+  );
   return NextResponse.json({ success: true });
 }

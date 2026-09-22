@@ -1170,9 +1170,11 @@ export default function AdminPage() {
       setAuthed(true);
       localStorage.setItem("admin_pw", pw);
       setAuthError("");
-    } else {
+    } else if (res.status === 401) {
       setAuthError("Wrong password");
       localStorage.removeItem("admin_pw");
+    } else {
+      setAuthError(`Server error (${res.status}) — check the deploy logs`);
     }
   }
 

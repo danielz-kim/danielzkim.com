@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import type { WorkHistoryEntry } from "@/lib/types";
+import { getFile, putFile } from "@/lib/github-content";
 
-const dataFile = path.join(process.cwd(), "content", "work-history.json");
+const dataFile = "content/work-history.json";
 
 function checkAuth(req: NextRequest) {
   return req.headers.get("x-admin-password") === process.env.ADMIN_PASSWORD;
@@ -12,7 +11,8 @@ function checkAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const entries: WorkHistoryEntry[] = JSON.parse(fs.readFileSync(dataFile, "utf-8"));
+  const file = await getFile(dataFile);
+  const entries: WorkHistoryEntry[] = file ? JSON.parse(file.content) : [];
   return NextResponse.json(entries);
 }
 
@@ -24,6 +24,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Expected an array" }, { status: 400 });
   }
 
-  fs.writeFileSync(dataFile, JSON.stringify(entries, null, 2));
+  const existing = await getFile(dataFile);
+  await putFile(dataFile, JSON.stringify(entries, null, 2), "Update work history", existing?.sha);
   return NextResponse.json({ success: true });
 }

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import matter from "gray-matter";
+import { getFile, putFile, deleteFile } from "@/lib/github-content";
 
-const contentDir = path.join(process.cwd(), "content", "work");
+const contentDir = "content/work";
 
 function checkAuth(req: NextRequest) {
   return req.headers.get("x-admin-password") === process.env.ADMIN_PASSWORD;
@@ -16,28 +15,35 @@ function safeSlug(slug: string) {
 export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const filePath = path.join(contentDir, `${safeSlug(params.slug)}.mdx`);
-  if (!fs.existsSync(filePath)) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const file = await getFile(`${contentDir}/${safeSlug(params.slug)}.mdx`);
+  if (!file) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { data, content } = matter(fs.readFileSync(filePath, "utf-8"));
+  const { data, content } = matter(file.content);
   return NextResponse.json({ frontmatter: data, content });
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { slug: string } }) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const filePath = path.join(contentDir, `${safeSlug(params.slug)}.mdx`);
+  const filePath = `${contentDir}/${safeSlug(params.slug)}.mdx`;
   const { frontmatter, content } = await req.json();
-  fs.writeFileSync(filePath, matter.stringify(content ?? "", frontmatter));
+  const existing = await getFile(filePath);
+  await putFile(
+    filePath,
+    matter.stringify(content ?? "", frontmatter),
+    `Update work case study: ${params.slug}`,
+    existing?.sha
+  );
   return NextResponse.json({ success: true });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { slug: string } }) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const filePath = path.join(contentDir, `${safeSlug(params.slug)}.mdx`);
-  if (!fs.existsSync(filePath)) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const filePath = `${contentDir}/${safeSlug(params.slug)}.mdx`;
+  const existing = await getFile(filePath);
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  fs.unlinkSync(filePath);
+  await deleteFile(filePath, `Delete work case study: ${params.slug}`, existing.sha);
   return NextResponse.json({ success: true });
 }

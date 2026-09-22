@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import type { Book } from "@/lib/types";
+import { getFile, putFile } from "@/lib/github-content";
 
-const readingFile = path.join(process.cwd(), "content", "reading.json");
+const readingFile = "content/reading.json";
 
 function checkAuth(req: NextRequest) {
   return req.headers.get("x-admin-password") === process.env.ADMIN_PASSWORD;
 }
 
-function readBooks(): Book[] {
-  return JSON.parse(fs.readFileSync(readingFile, "utf-8"));
-}
-
-function writeBooks(books: Book[]) {
-  fs.writeFileSync(readingFile, JSON.stringify(books, null, 2));
+async function readBooks(): Promise<{ books: Book[]; sha?: string }> {
+  const file = await getFile(readingFile);
+  return { books: file ? JSON.parse(file.content) : [], sha: file?.sha };
 }
 
 function slugify(str: string) {
@@ -28,14 +24,15 @@ function slugify(str: string) {
 export async function GET(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  return NextResponse.json(readBooks());
+  const { books } = await readBooks();
+  return NextResponse.json(books);
 }
 
 export async function POST(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const books = readBooks();
+  const { books, sha } = await readBooks();
 
   const base = slugify(`${body.title}-${body.author}`) || "book";
   let id = base;
@@ -57,6 +54,6 @@ export async function POST(req: NextRequest) {
   };
 
   books.unshift(newBook);
-  writeBooks(books);
+  await putFile(readingFile, JSON.stringify(books, null, 2), `Add book: ${newBook.title}`, sha);
   return NextResponse.json({ success: true, id });
 }

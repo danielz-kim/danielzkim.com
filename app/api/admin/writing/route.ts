@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import matter from "gray-matter";
+import { listDir, getFile, putFile } from "@/lib/github-content";
 
-const contentDir = path.join(process.cwd(), "content", "writing");
+const contentDir = "content/writing";
 
 function checkAuth(req: NextRequest) {
   return req.headers.get("x-admin-password") === process.env.ADMIN_PASSWORD;
@@ -12,15 +11,16 @@ function checkAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const files = fs.readdirSync(contentDir).filter((f) => f.endsWith(".mdx"));
-  const posts = files
-    .map((filename) => {
-      const slug = filename.replace(".mdx", "");
-      const raw = fs.readFileSync(path.join(contentDir, filename), "utf-8");
-      const { data } = matter(raw);
+  const files = (await listDir(contentDir)).filter((f) => f.name.endsWith(".mdx"));
+  const posts = await Promise.all(
+    files.map(async (f) => {
+      const slug = f.name.replace(".mdx", "");
+      const file = await getFile(`${contentDir}/${f.name}`);
+      const { data } = matter(file?.content ?? "");
       return { slug, ...data };
     })
-    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  );
+  posts.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return NextResponse.json(posts);
 }
@@ -34,12 +34,12 @@ export async function POST(req: NextRequest) {
     .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
-  const filePath = path.join(contentDir, `${safeSlug}.mdx`);
+  const filePath = `${contentDir}/${safeSlug}.mdx`;
 
-  if (fs.existsSync(filePath)) {
+  if (await getFile(filePath)) {
     return NextResponse.json({ error: "Slug already exists" }, { status: 409 });
   }
 
-  fs.writeFileSync(filePath, matter.stringify(content ?? "", frontmatter));
+  await putFile(filePath, matter.stringify(content ?? "", frontmatter), `Add writing post: ${safeSlug}`);
   return NextResponse.json({ success: true, slug: safeSlug });
 }
